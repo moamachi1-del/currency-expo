@@ -1,39 +1,42 @@
 workflows:
-  build-android:
-    name: Build Android APK (Expo)
-    max_build_duration: 60
-    instance_type: mac_mini_m2  # یا linux اگر بخوای ارزون‌تر
+  expo-android-build:
+    name: Expo Android APK Build
+    max_build_duration: 45
+    instance_type: mac_mini_m2
     environment:
-      groups:
-        - expo_credentials  # بعداً اگر نیاز شد، Expo token اضافه کن
       vars:
-        PACKAGE_NAME: com.currencyapp.expo  # همون که تو app.json گذاشتی
+        PACKAGE_NAME: com.currencyapp.expo  # از app.json بردار
+      # اگر Expo token داری، اینجا اضافه کن (اختیاری فعلاً):
+      # groups:
+      #   - expo_credentials
 
     scripts:
-      - name: Install npm dependencies
+      - name: Install Node dependencies
         script: |
-          npm ci  # یا npm install
+          npm install
 
-      - name: Install Expo CLI
+      - name: Install Expo CLI globally
         script: |
           npm install -g expo-cli
 
-      - name: Prebuild Expo project (generate android folder)
+      - name: Prebuild Expo for Android
         script: |
-          npx expo prebuild --platform android --non-interactive
+          npx expo prebuild --platform android --non-interactive --clean
 
-      - name: Build Android APK
+      - name: Build Release APK
         script: |
           cd android
+          chmod +x ./gradlew
           ./gradlew assembleRelease
 
     artifacts:
-      - android/app/build/outputs/**/*.apk  # APK نهایی اینجا ذخیره می‌شه
+      - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/apk/release/app-release.apk  # اگر فقط یکی بود
 
     publishing:
       email:
         recipients:
-          - your-email@example.com  # ایمیل خودت رو بذار
+          - amir@example.com  # ایمیل خودت رو عوض کن (یا این بخش رو کامل پاک کن اگر نمی‌خوای ایمیل بیاد)
         notify:
           success: true
           failure: true
