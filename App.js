@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import axios from 'axios';
 
 export default function App() {
   const [rates, setRates] = useState({});
@@ -26,34 +25,49 @@ export default function App() {
   const currencies = [
     { code: 'USD', name: 'دلار', icon: '🇺🇸' },
     { code: 'EUR', name: 'یورو', icon: '🇪🇺' },
-    { code: 'GBP', name: 'پوند', icon: '🇬🇧' },
-    { code: 'TRY', name: 'لیر', icon: '🇹🇷' },
-    { code: 'CNY', name: 'یوان', icon: '🇨🇳' },
-    { code: 'AED', name: 'درهم', icon: '🇦🇪' },
-    { code: 'GOLD', name: 'طلا', icon: '🪙' },
-    { code: 'BTC', name: 'بیتکوین', icon: '₿' },
+    { code: 'TRY', name: 'لیر ترکیه', icon: '🇹🇷' },
+    { code: 'AED', name: 'درهم امارات', icon: '🇦🇪' },
+    { code: 'GOLD', name: 'طلا ۱۸ عیار', icon: '🪙' },
+    { code: 'BTC', name: 'بیت‌کوین', icon: '₿' },
+    { code: 'ETH', name: 'اتریوم', icon: 'Ξ' },
   ];
 
   const fetchRates = async () => {
+    setRefreshing(true);
     try {
-      const response = await axios.get(
-        'https://api.tgju.org/v1/market/indicator/summary-table-data/global-price'
-      );
-      const data = response.data;
+      // brsapi.ir - مثال برای چند تا endpoint (می‌تونی بیشتر اضافه کنی)
+      const [usdRes, eurRes, tryRes, aedRes, goldRes, btcRes, ethRes] = await Promise.all([
+        fetch('https://brsapi.ir/api/v1/currency/usd'),
+        fetch('https://brsapi.ir/api/v1/currency/eur'),
+        fetch('https://brsapi.ir/api/v1/currency/try'),
+        fetch('https://brsapi.ir/api/v1/currency/aed'),
+        fetch('https://brsapi.ir/api/v1/gold/geram18'),
+        fetch('https://brsapi.ir/api/v1/crypto/bitcoin'),
+        fetch('https://brsapi.ir/api/v1/crypto/ethereum'),
+      ]);
+
+      const usdData = await usdRes.json();
+      const eurData = await eurRes.json();
+      const tryData = await tryRes.json();
+      const aedData = await aedRes.json();
+      const goldData = await goldRes.json();
+      const btcData = await btcRes.json();
+      const ethData = await ethRes.json();
+
       const newRates = {
-        USD: Math.round(data?.price_dollar_rl?.p || 721000),
-        EUR: Math.round(data?.price_eur?.p || 800000),
-        GBP: Math.round(data?.price_gbp?.p || 920000),
-        TRY: Math.round(data?.price_try?.p || 21000),
-        CNY: Math.round((data?.price_dollar_rl?.p || 721000) / 7.2),
-        AED: Math.round(data?.price_aed?.p || 196000),
-        GOLD: Math.round(data?.geram18?.p || 52000000),
-        BTC: Math.round(data?.bitcoin?.p || 3520000000),
+        USD: Math.round(usdData?.p || 721000),
+        EUR: Math.round(eurData?.p || 800000),
+        TRY: Math.round(tryData?.p || 21000),
+        AED: Math.round(aedData?.p || 196000),
+        GOLD: Math.round(goldData?.p || 52000000), // هر گرم ۱۸ عیار
+        BTC: Math.round(btcData?.p || 3520000000),
+        ETH: Math.round(ethData?.p || 150000000),
       };
+
       setRates(newRates);
       setLastUpdate(new Date());
     } catch (error) {
-      console.error('خطا:', error);
+      console.error('خطا در گرفتن قیمت‌ها:', error);
     }
     setLoading(false);
     setRefreshing(false);
@@ -80,7 +94,7 @@ export default function App() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#4F46E5" />
-        <Text style={styles.loadingText}>در حال بارگذاری...</Text>
+        <Text style={styles.loadingText}>در حال بارگذاری قیمت‌ها...</Text>
       </View>
     );
   }
@@ -143,7 +157,7 @@ export default function App() {
         ) : (
           <View style={styles.converter}>
             <View style={styles.converterBox}>
-              <Text style={styles.label}>از</Text>
+              <Text style={styles.label}>مقدار</Text>
               <TextInput
                 style={styles.input}
                 value={amount}
@@ -153,9 +167,10 @@ export default function App() {
               />
             </View>
             <View style={styles.converterBox}>
-              <Text style={styles.label}>نتیجه</Text>
-              <Text style={styles.resultValue}>{formatNumber(result)}</Text>
+              <Text style={styles.label}>نتیجه (تقریبی)</Text>
+              <Text style={styles.resultValue}>{formatNumber(result)} تومان</Text>
             </View>
+            {/* بعداً می‌تونی select برای from/to اضافه کنی */}
           </View>
         )}
       </ScrollView>
