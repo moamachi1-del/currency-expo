@@ -5,16 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#4F46E5"
-    },
     "android": {
       "package": "com.currencyapp.expo",
       "versionCode": 1
-      // adaptiveIcon رو حذف کردیم تا prebuild crash نکنه
-      // اگر بعداً خواستی icon قشنگ، فایل واقعی assets/adaptive-icon.png رو اضافه کن
     }
   }
 }
