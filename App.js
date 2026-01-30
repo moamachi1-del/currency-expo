@@ -6,50 +6,22 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  SafeAreaView,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
 const ALL_ITEMS = [
-  { id: 'gold18', name: 'طلا ۱۸ عیار' },
-  { id: 'gold24', name: 'طلا ۲۴ عیار' },
-  { id: 'mesghal', name: 'مثقال طلا' },
-  { id: 'ons', name: 'انس طلا' },
-  { id: 'sekeemami', name: 'سکه امامی' },
-  { id: 'sekebahar', name: 'سکه بهار' },
-  { id: 'nimseke', name: 'نیم سکه' },
-  { id: 'robseke', name: 'ربع سکه' },
-  { id: 'naghr', name: 'نقره' },
-  { id: 'btc', name: 'بیت‌کوین' },
-  { id: 'eth', name: 'اتریوم' },
-  { id: 'xrp', name: 'ریپل' },
-  { id: 'ton', name: 'تون‌کوین' },
-  { id: 'ada', name: 'کاردانو' },
-  { id: 'sol', name: 'سولانا' },
-  { id: 'bnb', name: 'بایننس‌کوین' },
-  { id: 'doge', name: 'دوج‌کوین' },
   { id: 'usd', name: 'دلار آمریکا' },
   { id: 'eur', name: 'یورو' },
-  { id: 'gbp', name: 'پوند انگلیس' },
-  { id: 'chf', name: 'فرانک سوئیس' },
-  { id: 'try', name: 'لیر ترکیه' },
-  { id: 'aed', name: 'درهم امارات' },
-  { id: 'sar', name: 'ریال عربستان' },
-  { id: 'qar', name: 'ریال قطر' },
-  { id: 'omr', name: 'ریال عمان' },
-  { id: 'kwd', name: 'دینار کویت' },
-  { id: 'iqd', name: 'دینار عراق' },
-  { id: 'rub', name: 'روبل روسیه' },
-  { id: 'cny', name: 'یوان چین' },
-  { id: 'syp', name: 'پوند سوریه' },
-  { id: 'gel', name: 'لاری گرجستان' },
-  { id: 'amd', name: 'درام ارمنستان' },
-  { id: 'pkr', name: 'روپیه پاکستان' },
-  { id: 'inr', name: 'روپیه هند' },
-  { id: 'azn', name: 'منات آذربایجان' },
+  { id: 'gold18', name: 'طلا ۱۸ عیار' },
+  { id: 'sekeemami', name: 'سکه امامی' },
+  { id: 'btc', name: 'بیت‌کوین' },
+  // بقیه رو بعداً اضافه می‌کنیم
 ];
 
 export default function App() {
   const [selected, setSelected] = useState([]);
+  const [editing, setEditing] = useState(false); // حالت ویرایش لیست
 
   const toggleItem = (id) => {
     setSelected(prev =>
@@ -57,15 +29,22 @@ export default function App() {
     );
   };
 
+  const confirmSelection = () => {
+    setEditing(false);
+  };
+
   const displayed = ALL_ITEMS.filter(item => selected.includes(item.id));
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => setEditing(true)}>
+          <Text style={styles.editBtn}>تغییر لیست</Text>
+        </TouchableOpacity>
         <Text style={styles.title}>ارزبان</Text>
-        <TouchableOpacity style={styles.refreshBtn}>
-          <Text style={styles.refreshIcon}>↻</Text>
+        <TouchableOpacity>
+          <Text style={styles.refresh}>↻</Text>
         </TouchableOpacity>
       </View>
 
@@ -76,43 +55,51 @@ export default function App() {
           displayed.map(item => (
             <View key={item.id} style={styles.card}>
               <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.price}>قیمت: --- تومان</Text>
+              <Text style={styles.price}>--- تومان</Text>
             </View>
           ))
         )}
       </ScrollView>
 
-      <ScrollView style={styles.settings}>
-        <Text style={styles.sectionTitle}>انتخاب موارد دلخواه</Text>
-        {ALL_ITEMS.map(item => (
-          <View key={item.id} style={styles.settingRow}>
-            <Text style={styles.settingText}>{item.name}</Text>
-            <Switch
-              value={selected.includes(item.id)}
-              onValueChange={() => toggleItem(item.id)}
-              trackColor={{ false: '#CBD5E0', true: '#D4AF37' }}
-              thumbColor={selected.includes(item.id) ? '#7C3AED' : '#A0AEC0'}
-            />
-          </View>
-        ))}
-      </ScrollView>
-    </View>
+      {editing && (
+        <View style={styles.editContainer}>
+          <ScrollView style={styles.editList}>
+            {ALL_ITEMS.map(item => (
+              <View key={item.id} style={styles.editRow}>
+                <Text style={styles.editText}>{item.name}</Text>
+                <Switch
+                  value={selected.includes(item.id)}
+                  onValueChange={() => toggleItem(item.id)}
+                  trackColor={{ false: '#CBD5E0', true: '#D4AF37' }}
+                  thumbColor={selected.includes(item.id) ? '#7C3AED' : '#A0AEC0'}
+                />
+              </View>
+            ))}
+          </ScrollView>
+          <TouchableOpacity style={styles.confirmBtn} onPress={confirmSelection}>
+            <Text style={styles.confirmText}>تأیید انتخاب‌ها</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { backgroundColor: '#6B46C1', padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 4 },
-  title: { color: '#FFD700', fontSize: 34, fontWeight: 'bold' },
-  refreshBtn: { backgroundColor: '#9F7AEA', borderRadius: 50, width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
-  refreshIcon: { color: '#FFFFFF', fontSize: 28 },
+  container: { flex: 1, backgroundColor: '#FAF9F6' },
+  header: { backgroundColor: '#6B46C1', padding: 20, paddingTop: 50, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  title: { color: '#FFD700', fontSize: 30, fontWeight: 'bold' },
+  editBtn: { color: '#FFD700', fontSize: 18 },
+  refresh: { color: '#FFD700', fontSize: 28 },
   list: { flex: 1, padding: 16 },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, marginBottom: 16, borderWidth: 2, borderColor: '#E9D5FF', shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 5 },
-  name: { color: '#2D3748', fontSize: 22, fontWeight: '600' },
-  price: { color: '#D69E2E', fontSize: 20, marginTop: 8, fontWeight: 'bold' },
-  settings: { padding: 16, backgroundColor: '#F9FAFB' },
-  sectionTitle: { color: '#6B46C1', fontSize: 24, marginBottom: 16, fontWeight: 'bold', textAlign: 'center' },
-  settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
-  settingText: { color: '#2D3748', fontSize: 18 },
-  empty: { color: '#718096', fontSize: 22, textAlign: 'center', marginTop: 120, fontWeight: '500' },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
+  name: { color: '#1F2937', fontSize: 20, fontWeight: 'bold' },
+  price: { color: '#D69E2E', fontSize: 18, marginTop: 8 },
+  empty: { color: '#718096', fontSize: 20, textAlign: 'center', marginTop: 100 },
+  editContainer: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 16, maxHeight: '50%' },
+  editList: { flex: 1 },
+  editRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
+  editText: { color: '#1F2937', fontSize: 18 },
+  confirmBtn: { backgroundColor: '#6B46C1', borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 16 },
+  confirmText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
 });
