@@ -52,11 +52,9 @@ export default function App() {
   const [selected, setSelected] = useState([]);
 
   const toggleItem = (id) => {
-    if (selected.includes(id)) {
-      setSelected(selected.filter(item => item !== id));
-    } else {
-      setSelected([...selected, id]);
-    }
+    setSelected(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
   };
 
   const displayed = ALL_ITEMS.filter(item => selected.includes(item.id));
@@ -66,11 +64,14 @@ export default function App() {
       <StatusBar style="light" />
       <View style={styles.header}>
         <Text style={styles.title}>ارزبان</Text>
+        <TouchableOpacity style={styles.refreshBtn}>
+          <Text style={styles.refreshIcon}>↻</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.list}>
         {displayed.length === 0 ? (
-          <Text style={styles.empty}>هیچ موردی انتخاب نشده</Text>
+          <Text style={styles.empty}>موردی انتخاب نشده</Text>
         ) : (
           displayed.map(item => (
             <View key={item.id} style={styles.card}>
@@ -82,15 +83,15 @@ export default function App() {
       </ScrollView>
 
       <ScrollView style={styles.settings}>
-        <Text style={styles.sectionTitle}>انتخاب موارد</Text>
+        <Text style={styles.sectionTitle}>انتخاب موارد دلخواه</Text>
         {ALL_ITEMS.map(item => (
           <View key={item.id} style={styles.settingRow}>
             <Text style={styles.settingText}>{item.name}</Text>
             <Switch
               value={selected.includes(item.id)}
               onValueChange={() => toggleItem(item.id)}
-              trackColor={{ false: '#767577', true: '#D4AF37' }}
-              thumbColor={selected.includes(item.id) ? '#7C3AED' : '#f4f3f4'}
+              trackColor={{ false: '#CBD5E0', true: '#D4AF37' }}
+              thumbColor={selected.includes(item.id) ? '#7C3AED' : '#A0AEC0'}
             />
           </View>
         ))}
@@ -100,16 +101,18 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F0E17' },
-  header: { backgroundColor: '#5B21B6', padding: 20, paddingTop: 50, alignItems: 'center' },
-  title: { color: '#D4AF37', fontSize: 28, fontWeight: 'bold' },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  header: { backgroundColor: '#6B46C1', padding: 24, paddingTop: 60, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 4 },
+  title: { color: '#FFD700', fontSize: 34, fontWeight: 'bold' },
+  refreshBtn: { backgroundColor: '#9F7AEA', borderRadius: 50, width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+  refreshIcon: { color: '#FFFFFF', fontSize: 28 },
   list: { flex: 1, padding: 16 },
-  card: { backgroundColor: '#1A1A2E', borderRadius: 16, padding: 16, marginBottom: 12 },
-  name: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
-  price: { color: '#D4AF37', fontSize: 16, marginTop: 8 },
-  settings: { padding: 16, backgroundColor: '#0F0E17' },
-  sectionTitle: { color: '#D4AF37', fontSize: 20, marginBottom: 12, fontWeight: 'bold' },
-  settingRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#2D3748' },
-  settingText: { color: '#E2E8F0', fontSize: 16 },
-  empty: { color: '#D4AF37', fontSize: 18, textAlign: 'center', marginTop: 50 },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 20, padding: 20, marginBottom: 16, borderWidth: 2, borderColor: '#E9D5FF', shadowColor: '#7C3AED', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 5 },
+  name: { color: '#2D3748', fontSize: 22, fontWeight: '600' },
+  price: { color: '#D69E2E', fontSize: 20, marginTop: 8, fontWeight: 'bold' },
+  settings: { padding: 16, backgroundColor: '#F9FAFB' },
+  sectionTitle: { color: '#6B46C1', fontSize: 24, marginBottom: 16, fontWeight: 'bold', textAlign: 'center' },
+  settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
+  settingText: { color: '#2D3748', fontSize: 18 },
+  empty: { color: '#718096', fontSize: 22, textAlign: 'center', marginTop: 120, fontWeight: '500' },
 });
