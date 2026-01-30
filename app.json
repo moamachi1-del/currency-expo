@@ -1,10 +1,13 @@
 {
   "expo": {
-    "name": "نرخ ارز و طلا",
+    "name": "ارزبان",
     "slug": "currency-expo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#F8FAFC"  // رنگ زمینه اپت (سفید/خاکستری روشن)
+    },
     "android": {
       "package": "com.currencyapp.expo",
       "versionCode": 1
