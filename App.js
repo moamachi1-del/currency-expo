@@ -25,21 +25,24 @@ export default function App() {
       );
       const data = await response.json();
 
-      if (!data.usd) throw new Error('داده نامعتبر');
+      // چک کن اگر داده اصلی نبود
+      if (!data || typeof data !== 'object' || !data.usd) {
+        throw new Error('داده نامعتبر از API');
+      }
 
       const newRates = {
-        USD: Math.round(data.usd.value),
-        EUR: Math.round(data.eur.value),
-        TRY: Math.round(data.try.value),
-        AED: Math.round(data.aed.value),
-        GOLD: Math.round(data.geram18.value),
-        BTC: Math.round(data.bitcoin.value),
-        ETH: Math.round(data.ethereum.value),
+        USD: Math.round(data.usd?.value || 0),
+        EUR: Math.round(data.eur?.value || 0),
+        TRY: Math.round(data.try?.value || 0),
+        AED: Math.round(data.aed?.value || 0),
+        GOLD: Math.round(data.geram18?.value || 0),
+        BTC: Math.round(data.bitcoin?.value || 0),
+        ETH: Math.round(data.ethereum?.value || 0),
       };
 
       setRates(newRates);
     } catch (err) {
-      setError('خطا: ' + err.message);
+      setError('خطا در گرفتن قیمت‌ها: ' + err.message);
     }
     setLoading(false);
   };
