@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
@@ -16,45 +15,34 @@ export default function App() {
   const [rates, setRates] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [debugInfo, setDebugInfo] = useState('');
 
   const fetchRates = async () => {
     setLoading(true);
     setError(null);
-    setDebugInfo('در حال اتصال به سرور...');
-    
     try {
-      const url = `https://api.navasan.tech/latest/?api_key=${API_KEY}&item=usd,eur,try,aed,geram18,bitcoin,ethereum`;
-      setDebugInfo('URL: ' + url);
-      
-      const response = await fetch(url);
-      setDebugInfo(`وضعیت پاسخ: ${response.status}`);
-      
-      if (!response.ok) {
-        throw new Error(`خطای سرور: ${response.status}`);
-      }
-      
+      const response = await fetch(
+        `https://api.navasan.tech/latest/?api_key=${API_KEY}&item=usd,eur,try,aed,geram18,bitcoin,ethereum`
+      );
       const data = await response.json();
-      setDebugInfo('داده دریافت شد: ' + JSON.stringify(data).substring(0, 200));
-      
-      // چک کردن چند حالت مختلف برای ساختار داده
+
+      // چک کن اگر داده اصلی نبود
+      if (!data || typeof data !== 'object' || !data.usd) {
+        throw new Error('داده نامعتبر از API');
+      }
+
       const newRates = {
-        USD: Math.round(data.usd?.value || data.usd || 0),
-        EUR: Math.round(data.eur?.value || data.eur || 0),
-        TRY: Math.round(data.try?.value || data.try || 0),
-        AED: Math.round(data.aed?.value || data.aed || 0),
-        GOLD: Math.round(data.geram18?.value || data.geram18 || 0),
-        BTC: Math.round(data.bitcoin?.value || data.bitcoin || 0),
-        ETH: Math.round(data.ethereum?.value || data.ethereum || 0),
+        USD: Math.round(data.usd?.value || 0),
+        EUR: Math.round(data.eur?.value || 0),
+        TRY: Math.round(data.try?.value || 0),
+        AED: Math.round(data.aed?.value || 0),
+        GOLD: Math.round(data.geram18?.value || 0),
+        BTC: Math.round(data.bitcoin?.value || 0),
+        ETH: Math.round(data.ethereum?.value || 0),
       };
 
-      setDebugInfo('قیمت‌ها پردازش شدند');
       setRates(newRates);
-      
     } catch (err) {
-      const errorMsg = 'خطا: ' + err.message;
-      setError(errorMsg);
-      setDebugInfo(errorMsg + ' - ' + err.toString());
+      setError('خطا در گرفتن قیمت‌ها: ' + err.message);
     }
     setLoading(false);
   };
@@ -74,23 +62,15 @@ export default function App() {
       </View>
 
       {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#D4AF37" />
-          <Text style={styles.debugText}>{debugInfo}</Text>
-        </View>
+        <ActivityIndicator size="large" color="#D4AF37" style={styles.center} />
       ) : error ? (
-        <View style={styles.center}>
-          <Text style={styles.error}>{error}</Text>
-          <Text style={styles.debugText}>{debugInfo}</Text>
-        </View>
+        <Text style={styles.error}>{error}</Text>
       ) : (
         <ScrollView style={styles.list}>
           {Object.entries(rates).map(([key, value]) => (
             <View key={key} style={styles.card}>
               <Text style={styles.name}>{key}</Text>
-              <Text style={styles.price}>
-                {value > 0 ? value.toLocaleString('fa-IR') + ' تومان' : 'خطا در دریافت'}
-              </Text>
+              <Text style={styles.price}>{value.toLocaleString('fa-IR')} تومان</Text>
             </View>
           ))}
         </ScrollView>
@@ -101,31 +81,13 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0F0E17' },
-  header: { 
-    backgroundColor: '#5B21B6', 
-    padding: 20, 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center' 
-  },
+  header: { backgroundColor: '#5B21B6', padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { color: '#D4AF37', fontSize: 28, fontWeight: 'bold' },
   refresh: { color: '#D4AF37', fontSize: 32 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  error: { color: '#FF6B6B', fontSize: 18, textAlign: 'center', marginBottom: 20 },
-  debugText: { 
-    color: '#888', 
-    fontSize: 12, 
-    textAlign: 'center', 
-    marginTop: 10,
-    padding: 10 
-  },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  error: { color: '#FF6B6B', fontSize: 18, textAlign: 'center', marginTop: 100 },
   list: { padding: 16 },
-  card: { 
-    backgroundColor: '#1A1A2E', 
-    borderRadius: 16, 
-    padding: 20, 
-    marginBottom: 16 
-  },
+  card: { backgroundColor: '#1A1A2E', borderRadius: 16, padding: 20, marginBottom: 16 },
   name: { color: '#FFFFFF', fontSize: 20, fontWeight: 'bold' },
   price: { color: '#D4AF37', fontSize: 24, marginTop: 8 },
-});
+});گ
