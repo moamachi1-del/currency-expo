@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
@@ -16,45 +15,45 @@ export default function App() {
   const [rates, setRates] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [debugInfo, setDebugInfo] = useState('');
 
   const fetchRates = async () => {
     setLoading(true);
     setError(null);
-    setDebugInfo('در حال اتصال به سرور...');
     
     try {
       const url = `https://api.navasan.tech/latest/?api_key=${API_KEY}&item=usd,eur,try,aed,geram18,bitcoin,ethereum`;
-      setDebugInfo('URL: ' + url);
       
       const response = await fetch(url);
-      setDebugInfo(`وضعیت پاسخ: ${response.status}`);
       
       if (!response.ok) {
         throw new Error(`خطای سرور: ${response.status}`);
       }
       
       const data = await response.json();
-      setDebugInfo('داده دریافت شد: ' + JSON.stringify(data).substring(0, 200));
       
-      // چک کردن چند حالت مختلف برای ساختار داده
+      // تابع کمکی برای گرفتن مقدار از ساختارهای مختلف
+      const getValue = (item) => {
+        if (!item) return 0;
+        if (typeof item === 'number') return item;
+        if (item.value) return item.value;
+        if (item.price) return item.price;
+        return 0;
+      };
+      
       const newRates = {
-        USD: Math.round(data.usd?.value || data.usd || 0),
-        EUR: Math.round(data.eur?.value || data.eur || 0),
-        TRY: Math.round(data.try?.value || data.try || 0),
-        AED: Math.round(data.aed?.value || data.aed || 0),
-        GOLD: Math.round(data.geram18?.value || data.geram18 || 0),
-        BTC: Math.round(data.bitcoin?.value || data.bitcoin || 0),
-        ETH: Math.round(data.ethereum?.value || data.ethereum || 0),
+        USD: Math.round(getValue(data.usd)),
+        EUR: Math.round(getValue(data.eur)),
+        TRY: Math.round(getValue(data.try)),
+        AED: Math.round(getValue(data.aed)),
+        GOLD: Math.round(getValue(data.geram18)),
+        BTC: Math.round(getValue(data.bitcoin)),
+        ETH: Math.round(getValue(data.ethereum)),
       };
 
-      setDebugInfo('قیمت‌ها پردازش شدند');
       setRates(newRates);
       
     } catch (err) {
-      const errorMsg = 'خطا: ' + err.message;
-      setError(errorMsg);
-      setDebugInfo(errorMsg + ' - ' + err.toString());
+      setError('خطا در گرفتن قیمت‌ها: ' + err.message);
     }
     setLoading(false);
   };
@@ -76,13 +75,9 @@ export default function App() {
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#D4AF37" />
-          <Text style={styles.debugText}>{debugInfo}</Text>
         </View>
       ) : error ? (
-        <View style={styles.center}>
-          <Text style={styles.error}>{error}</Text>
-          <Text style={styles.debugText}>{debugInfo}</Text>
-        </View>
+        <Text style={styles.error}>{error}</Text>
       ) : (
         <ScrollView style={styles.list}>
           {Object.entries(rates).map(([key, value]) => (
@@ -111,14 +106,7 @@ const styles = StyleSheet.create({
   title: { color: '#D4AF37', fontSize: 28, fontWeight: 'bold' },
   refresh: { color: '#D4AF37', fontSize: 32 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
-  error: { color: '#FF6B6B', fontSize: 18, textAlign: 'center', marginBottom: 20 },
-  debugText: { 
-    color: '#888', 
-    fontSize: 12, 
-    textAlign: 'center', 
-    marginTop: 10,
-    padding: 10 
-  },
+  error: { color: '#FF6B6B', fontSize: 18, textAlign: 'center', marginTop: 100 },
   list: { padding: 16 },
   card: { 
     backgroundColor: '#1A1A2E', 
