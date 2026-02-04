@@ -8,77 +8,61 @@ import {
   ActivityIndicator,
   Modal,
   SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_KEY = 'freeGcIODOZyhFq6Lj2qz3ciQ0Jg6kWP';
+const API_KEY = 'B2JhTivIrHZHFFJDdKtE1vxP1Mp3LBuH';
+const API_URL = `https://BrsApi.ir/Api/Market/Gold_Currency.php?key=${API_KEY}`;
+const CACHE_KEY = '@arzban_cache';
+const LAST_UPDATE_KEY = '@arzban_last_update';
+const SELECTED_ITEMS_KEY = '@arzban_selected';
 
-// لیست کامل ارزها با اسامی API
-const ALL_CURRENCIES = {
-  gold: [
-    { id: 'gerami', name: 'طلا ۱۸ عیار', icon: '💍' },
-    { id: '18ayar', name: 'طلا ۲۴ عیار', icon: '🏆' },
-    { id: 'mesghal', name: 'مثقال طلا', icon: '⚖️' },
-    { id: 'ons', name: 'انس طلا', icon: '🥇' },
-    { id: 'sekkeh', name: 'سکه امامی', icon: '🪙' },
-    { id: 'bahar', name: 'سکه بهار', icon: '🌸' },
-    { id: 'nim', name: 'نیم سکه', icon: '🔸' },
-    { id: 'rob', name: 'ربع سکه', icon: '🔹' },
-    { id: 'silver', name: 'نقره', icon: '⚪' },
-  ],
-  crypto: [
-    { id: 'bitcoin', name: 'بیت‌کوین', icon: '₿', symbol: 'BTC' },
-    { id: 'ethereum', name: 'اتریوم', icon: '♦️', symbol: 'ETH' },
-    { id: 'ripple', name: 'ریپل', icon: '💠', symbol: 'XRP' },
-    { id: 'toncoin', name: 'تون‌کوین', icon: '💎', symbol: 'TON' },
-    { id: 'cardano', name: 'کاردانو', icon: '🔷', symbol: 'ADA' },
-    { id: 'solana', name: 'سولانا', icon: '🌟', symbol: 'SOL' },
-    { id: 'binance', name: 'بایننس‌کوین', icon: '🟡', symbol: 'BNB' },
-    { id: 'dogecoin', name: 'دوج‌کوین', icon: '🐕', symbol: 'DOGE' },
-  ],
-  currency: [
-    { id: 'usd_usdt', name: 'دلار آمریکا', icon: '🇺🇸', symbol: 'USD' },
-    { id: 'eur', name: 'یورو', icon: '🇪🇺', symbol: 'EUR' },
-    { id: 'gbp', name: 'پوند انگلیس', icon: '🇬🇧', symbol: 'GBP' },
-    { id: 'chf', name: 'فرانک سوئیس', icon: '🇨🇭', symbol: 'CHF' },
-    { id: 'try_tl', name: 'لیر ترکیه', icon: '🇹🇷', symbol: 'TRY' },
-    { id: 'aed', name: 'درهم امارات', icon: '🇦🇪', symbol: 'AED' },
-    { id: 'sar', name: 'ریال عربستان', icon: '🇸🇦', symbol: 'SAR' },
-    { id: 'qar', name: 'ریال قطر', icon: '🇶🇦', symbol: 'QAR' },
-    { id: 'omr', name: 'ریال عمان', icon: '🇴🇲', symbol: 'OMR' },
-    { id: 'kwd', name: 'دینار کویت', icon: '🇰🇼', symbol: 'KWD' },
-    { id: 'iqd', name: 'دینار عراق', icon: '🇮🇶', symbol: 'IQD' },
-    { id: 'rub', name: 'روبل روسیه', icon: '🇷🇺', symbol: 'RUB' },
-    { id: 'cny', name: 'یوان چین', icon: '🇨🇳', symbol: 'CNY' },
-    { id: 'syp', name: 'پوند سوریه', icon: '🇸🇾', symbol: 'SYP' },
-    { id: 'gel', name: 'لاری گرجستان', icon: '🇬🇪', symbol: 'GEL' },
-    { id: 'amd', name: 'درام ارمنستان', icon: '🇦🇲', symbol: 'AMD' },
-    { id: 'pkr', name: 'روپیه پاکستان', icon: '🇵🇰', symbol: 'PKR' },
-    { id: 'inr', name: 'روپیه هند', icon: '🇮🇳', symbol: 'INR' },
-    { id: 'azn', name: 'منات آذربایجان', icon: '🇦🇿', symbol: 'AZN' },
-  ],
+// مپینگ اسامی API به اسامی فارسی
+const CURRENCY_MAP = {
+  // طلا و سکه
+  'geram18': { name: 'طلا ۱۸ عیار', icon: '💍', category: 'gold' },
+  'geram24': { name: 'طلا ۲۴ عیار', icon: '🏆', category: 'gold' },
+  'mesghal': { name: 'مثقال طلا', icon: '⚖️', category: 'gold' },
+  'ons': { name: 'انس طلا', icon: '🥇', category: 'gold' },
+  'sekeb': { name: 'سکه امامی', icon: '🪙', category: 'gold' },
+  'sekee': { name: 'سکه بهار آزادی', icon: '🌸', category: 'gold' },
+  'seken': { name: 'نیم سکه', icon: '🔸', category: 'gold' },
+  'sekerb': { name: 'ربع سکه', icon: '🔹', category: 'gold' },
+  
+  // ارزها
+  'usd': { name: 'دلار آمریکا', icon: '🇺🇸', category: 'currency' },
+  'eur': { name: 'یورو', icon: '🇪🇺', category: 'currency' },
+  'gbp': { name: 'پوند انگلیس', icon: '🇬🇧', category: 'currency' },
+  'chf': { name: 'فرانک سوئیس', icon: '🇨🇭', category: 'currency' },
+  'try': { name: 'لیر ترکیه', icon: '🇹🇷', category: 'currency' },
+  'aed': { name: 'درهم امارات', icon: '🇦🇪', category: 'currency' },
+  'cny': { name: 'یوان چین', icon: '🇨🇳', category: 'currency' },
 };
 
-// پیش‌فرض: دلار، یورو، طلا، سکه، بیت‌کوین
-const DEFAULT_SELECTED = ['usd_usdt', 'eur', 'gerami', 'sekkeh', 'bitcoin'];
+// پیش‌فرض
+const DEFAULT_SELECTED = ['usd', 'eur', 'geram18', 'sekeb'];
 
 export default function App() {
   const [rates, setRates] = useState({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedItems, setSelectedItems] = useState(DEFAULT_SELECTED);
+  const [lastUpdate, setLastUpdate] = useState('');
   const [persianDate, setPersianDate] = useState('');
   const [gregorianDate, setGregorianDate] = useState('');
 
-  // تبدیل تاریخ میلادی به شمسی
+  // تبدیل تاریخ به شمسی
   const convertToJalali = (date) => {
     const g_y = date.getFullYear();
     const g_m = date.getMonth() + 1;
     const g_d = date.getDate();
     
     const g_days = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-    const jy = (g_y <= 1600) ? 0 : 979;
+    let jy = (g_y <= 1600) ? 0 : 979;
     const gd = g_days[g_m - 1] + g_d;
     
     let jd = 365 * jy + Math.floor(jy / 33) * 8 + Math.floor((jy % 33 + 3) / 4) + 78 + gd;
@@ -104,67 +88,133 @@ export default function App() {
   const updateDates = () => {
     const now = new Date();
     setPersianDate(convertToJalali(now));
-    setGregorianDate(now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
+    
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    setGregorianDate(`${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${hours}:${minutes}`);
+    setLastUpdate(`${hours}:${minutes}`);
   };
 
-  const fetchRates = async () => {
-    setLoading(true);
+  // بارگذاری از کش
+  const loadFromCache = async () => {
+    try {
+      const cachedData = await AsyncStorage.getItem(CACHE_KEY);
+      const cachedUpdate = await AsyncStorage.getItem(LAST_UPDATE_KEY);
+      const cachedSelected = await AsyncStorage.getItem(SELECTED_ITEMS_KEY);
+      
+      if (cachedData) {
+        setRates(JSON.parse(cachedData));
+      }
+      if (cachedUpdate) {
+        setLastUpdate(cachedUpdate);
+      }
+      if (cachedSelected) {
+        setSelectedItems(JSON.parse(cachedSelected));
+      }
+      updateDates();
+    } catch (error) {
+      console.log('خطا در بارگذاری کش:', error);
+    }
+  };
+
+  // ذخیره در کش
+  const saveToCache = async (data, updateTime) => {
+    try {
+      await AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      await AsyncStorage.setItem(LAST_UPDATE_KEY, updateTime);
+    } catch (error) {
+      console.log('خطا در ذخیره کش:', error);
+    }
+  };
+
+  // ذخیره انتخاب‌ها
+  const saveSelectedItems = async (items) => {
+    try {
+      await AsyncStorage.setItem(SELECTED_ITEMS_KEY, JSON.stringify(items));
+    } catch (error) {
+      console.log('خطا در ذخیره انتخاب‌ها:', error);
+    }
+  };
+
+  // دریافت داده از API
+  const fetchRates = async (isManual = false) => {
+    if (isManual) {
+      setRefreshing(true);
+    }
     setError(null);
     
     try {
-      // ساخت لیست آیتم‌ها برای API
-      const items = selectedItems.join(',');
-      const url = `https://api.navasan.tech/latest/?api_key=${API_KEY}&item=${items}`;
-      
-      const response = await fetch(url, {
+      const response = await fetch(API_URL, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' }
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'ArzbanApp/1.0',
+        }
       });
       
       if (!response.ok) {
-        throw new Error(`خطای ${response.status}`);
+        throw new Error(`خطای سرور: ${response.status}`);
       }
       
       const data = await response.json();
       
       // پردازش داده‌ها
       const newRates = {};
-      selectedItems.forEach(id => {
-        const item = data[id];
-        if (item && item.value) {
-          newRates[id] = Math.round(item.value);
+      
+      Object.keys(CURRENCY_MAP).forEach(key => {
+        if (data[key]) {
+          newRates[key] = parseInt(data[key]);
         }
       });
       
       setRates(newRates);
       updateDates();
       
+      const now = new Date();
+      const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      await saveToCache(newRates, timeStr);
+      
     } catch (err) {
-      setError('خطا در دریافت اطلاعات');
+      setError('خطا در دریافت اطلاعات: ' + err.message);
     }
+    
     setLoading(false);
+    setRefreshing(false);
   };
 
+  // بارگذاری اولیه
   useEffect(() => {
-    fetchRates();
-    const interval = setInterval(fetchRates, 60000); // هر دقیقه
+    const init = async () => {
+      await loadFromCache();
+      setLoading(false);
+      await fetchRates();
+    };
+    
+    init();
+    
+    // هر 5 دقیقه خودکار رفرش
+    const interval = setInterval(() => {
+      fetchRates();
+    }, 5 * 60 * 1000);
+    
     return () => clearInterval(interval);
+  }, []);
+
+  // وقتی انتخاب‌ها عوض میشه
+  useEffect(() => {
+    saveSelectedItems(selectedItems);
   }, [selectedItems]);
 
-  const toggleItem = (id) => {
-    if (selectedItems.includes(id)) {
-      setSelectedItems(selectedItems.filter(item => item !== id));
+  const toggleItem = (key) => {
+    if (selectedItems.includes(key)) {
+      setSelectedItems(selectedItems.filter(item => item !== key));
     } else {
-      setSelectedItems([...selectedItems, id]);
+      setSelectedItems([...selectedItems, key]);
     }
   };
 
-  const getItemInfo = (id) => {
-    for (let category in ALL_CURRENCIES) {
-      const found = ALL_CURRENCIES[category].find(item => item.id === id);
-      if (found) return found;
-    }
-    return { name: id, icon: '💰' };
+  const onRefresh = () => {
+    fetchRates(true);
   };
 
   return (
@@ -175,7 +225,7 @@ export default function App() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Text style={styles.appTitle}>ارزبان 💰</Text>
-          <TouchableOpacity onPress={fetchRates} style={styles.refreshButton}>
+          <TouchableOpacity onPress={onRefresh} style={styles.refreshButton}>
             <Text style={styles.refreshIcon}>↻</Text>
           </TouchableOpacity>
         </View>
@@ -183,6 +233,7 @@ export default function App() {
         <View style={styles.dateContainer}>
           <Text style={styles.datePersian}>{persianDate}</Text>
           <Text style={styles.dateGregorian}>{gregorianDate}</Text>
+          <Text style={styles.lastUpdateText}>آخرین بروزرسانی: {lastUpdate}</Text>
         </View>
       </View>
 
@@ -190,30 +241,38 @@ export default function App() {
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#FFD700" />
-          <Text style={styles.loadingText}>در حال بروزرسانی...</Text>
+          <Text style={styles.loadingText}>در حال بارگذاری...</Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.error}>{error}</Text>
-          <TouchableOpacity onPress={fetchRates} style={styles.retryButton}>
+          <TouchableOpacity onPress={() => fetchRates(true)} style={styles.retryButton}>
             <Text style={styles.retryText}>تلاش مجدد</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
-          {selectedItems.map(id => {
-            const info = getItemInfo(id);
-            const value = rates[id];
+        <ScrollView 
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FFD700']} />
+          }
+        >
+          {selectedItems.map(key => {
+            const info = CURRENCY_MAP[key];
+            const value = rates[key];
+            
+            if (!info) return null;
+            
             return (
-              <View key={id} style={styles.card}>
+              <View key={key} style={styles.card}>
                 <View style={styles.cardHeader}>
                   <Text style={styles.icon}>{info.icon}</Text>
                   <Text style={styles.name}>{info.name}</Text>
-                  {info.symbol && <Text style={styles.symbol}>{info.symbol}</Text>}
                 </View>
                 <Text style={styles.price}>
-                  {value ? `${value.toLocaleString('fa-IR')} تومان` : '---'}
+                  {value ? `${value.toLocaleString('fa-IR')} تومان` : 'در حال بارگذاری...'}
                 </Text>
               </View>
             );
@@ -228,7 +287,8 @@ export default function App() {
           </TouchableOpacity>
           
           <View style={styles.footer}>
-            <Text style={styles.footerText}>به‌روزرسانی خودکار هر دقیقه</Text>
+            <Text style={styles.footerText}>بروزرسانی خودکار هر ۵ دقیقه</Text>
+            <Text style={styles.footerTextSmall}>برای رفرش دستی، پایین بکشید</Text>
           </View>
         </ScrollView>
       )}
@@ -250,30 +310,49 @@ export default function App() {
             </View>
             
             <ScrollView style={styles.modalList}>
-              {Object.keys(ALL_CURRENCIES).map(category => (
-                <View key={category}>
-                  <Text style={styles.categoryTitle}>
-                    {category === 'gold' ? '🏆 طلا و سکه' : 
-                     category === 'crypto' ? '₿ کریپتو' : '💵 ارزها'}
-                  </Text>
-                  {ALL_CURRENCIES[category].map(item => (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={[
-                        styles.modalItem,
-                        selectedItems.includes(item.id) && styles.modalItemSelected
-                      ]}
-                      onPress={() => toggleItem(item.id)}
-                    >
-                      <Text style={styles.modalItemIcon}>{item.icon}</Text>
-                      <Text style={styles.modalItemText}>{item.name}</Text>
-                      {selectedItems.includes(item.id) && (
-                        <Text style={styles.checkmark}>✓</Text>
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              ))}
+              {/* طلا و سکه */}
+              <Text style={styles.categoryTitle}>🏆 طلا و سکه</Text>
+              {Object.keys(CURRENCY_MAP).filter(k => CURRENCY_MAP[k].category === 'gold').map(key => {
+                const item = CURRENCY_MAP[key];
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[
+                      styles.modalItem,
+                      selectedItems.includes(key) && styles.modalItemSelected
+                    ]}
+                    onPress={() => toggleItem(key)}
+                  >
+                    <Text style={styles.modalItemIcon}>{item.icon}</Text>
+                    <Text style={styles.modalItemText}>{item.name}</Text>
+                    {selectedItems.includes(key) && (
+                      <Text style={styles.checkmark}>✓</Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+              
+              {/* ارزها */}
+              <Text style={styles.categoryTitle}>💵 ارزها</Text>
+              {Object.keys(CURRENCY_MAP).filter(k => CURRENCY_MAP[k].category === 'currency').map(key => {
+                const item = CURRENCY_MAP[key];
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[
+                      styles.modalItem,
+                      selectedItems.includes(key) && styles.modalItemSelected
+                    ]}
+                    onPress={() => toggleItem(key)}
+                  >
+                    <Text style={styles.modalItemIcon}>{item.icon}</Text>
+                    <Text style={styles.modalItemText}>{item.name}</Text>
+                    {selectedItems.includes(key) && (
+                      <Text style={styles.checkmark}>✓</Text>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
             
             <TouchableOpacity 
@@ -295,13 +374,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#0A0E27',
   },
   header: {
-    backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    backgroundColor: '#6C5CE7',
     paddingTop: 15,
     paddingBottom: 20,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    shadowColor: '#667eea',
+    shadowColor: '#6C5CE7',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -345,6 +424,11 @@ const styles = StyleSheet.create({
   dateGregorian: {
     fontSize: 13,
     color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 4,
+  },
+  lastUpdateText: {
+    fontSize: 11,
+    color: 'rgba(255, 215, 0, 0.8)',
   },
   center: {
     flex: 1,
@@ -368,7 +452,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#6C5CE7',
     paddingHorizontal: 30,
     paddingVertical: 12,
     borderRadius: 25,
@@ -410,14 +494,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     flex: 1,
   },
-  symbol: {
-    fontSize: 14,
-    color: 'rgba(255, 215, 0, 0.7)',
-    backgroundColor: 'rgba(255, 215, 0, 0.1)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
   price: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -428,7 +504,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#667eea',
+    backgroundColor: '#6C5CE7',
     padding: 16,
     borderRadius: 15,
     marginTop: 10,
@@ -450,6 +526,11 @@ const styles = StyleSheet.create({
   footerText: {
     color: 'rgba(255, 255, 255, 0.4)',
     fontSize: 12,
+    marginBottom: 4,
+  },
+  footerTextSmall: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: 10,
   },
   // مودال
   modalOverlay: {
@@ -502,9 +583,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   modalItemSelected: {
-    backgroundColor: 'rgba(102, 126, 234, 0.3)',
+    backgroundColor: 'rgba(108, 92, 231, 0.3)',
     borderWidth: 2,
-    borderColor: '#667eea',
+    borderColor: '#6C5CE7',
   },
   modalItemIcon: {
     fontSize: 24,
@@ -521,7 +602,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   doneButton: {
-    backgroundColor: '#667eea',
+    backgroundColor: '#6C5CE7',
     marginHorizontal: 20,
     padding: 16,
     borderRadius: 15,
