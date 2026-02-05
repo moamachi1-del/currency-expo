@@ -9,7 +9,6 @@ import {
   Modal,
   SafeAreaView,
   TextInput,
-  Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,9 +19,8 @@ const CACHE_KEY = '@arzban_cache';
 const LAST_UPDATE_KEY = '@arzban_last_update';
 const SELECTED_ITEMS_KEY = '@arzban_selected';
 
-// لیست کامل با ۴۰+ ارز و پرچم‌ها
+// لیست کامل ارزها
 const DISPLAY_MAP = {
-  // ایران و همسایگان
   'USDT_IRT': { name: 'تتر (دلار)', flag: '🇺🇸', category: 'currency' },
   'EUR': { name: 'یورو', flag: '🇪🇺', category: 'currency' },
   'GBP': { name: 'پوند انگلیس', flag: '🇬🇧', category: 'currency' },
@@ -38,8 +36,6 @@ const DISPLAY_MAP = {
   'AMD': { name: 'درام ارمنستان', flag: '🇦🇲', category: 'currency' },
   'AZN': { name: 'منات آذربایجان', flag: '🇦🇿', category: 'currency' },
   'GEL': { name: 'لاری گرجستان', flag: '🇬🇪', category: 'currency' },
-  
-  // آسیا
   'CNY': { name: 'یوان چین', flag: '🇨🇳', category: 'currency' },
   'JPY': { name: 'ین ژاپن', flag: '🇯🇵', category: 'currency' },
   'KRW': { name: 'وون کره', flag: '🇰🇷', category: 'currency' },
@@ -50,8 +46,6 @@ const DISPLAY_MAP = {
   'MYR': { name: 'رینگیت مالزی', flag: '🇲🇾', category: 'currency' },
   'IDR': { name: 'روپیه اندونزی', flag: '🇮🇩', category: 'currency' },
   'VND': { name: 'دونگ ویتنام', flag: '🇻🇳', category: 'currency' },
-  
-  // اروپا
   'CHF': { name: 'فرانک سوئیس', flag: '🇨🇭', category: 'currency' },
   'NOK': { name: 'کرون نروژ', flag: '🇳🇴', category: 'currency' },
   'SEK': { name: 'کرون سوئد', flag: '🇸🇪', category: 'currency' },
@@ -61,30 +55,24 @@ const DISPLAY_MAP = {
   'HUF': { name: 'فورینت مجارستان', flag: '🇭🇺', category: 'currency' },
   'RON': { name: 'لئو رومانی', flag: '🇷🇴', category: 'currency' },
   'RUB': { name: 'روبل روسیه', flag: '🇷🇺', category: 'currency' },
-  
-  // آمریکا و اقیانوسیه
   'CAD': { name: 'دلار کانادا', flag: '🇨🇦', category: 'currency' },
   'AUD': { name: 'دلار استرالیا', flag: '🇦🇺', category: 'currency' },
   'NZD': { name: 'دلار نیوزیلند', flag: '🇳🇿', category: 'currency' },
   'MXN': { name: 'پزو مکزیک', flag: '🇲🇽', category: 'currency' },
   'BRL': { name: 'رئال برزیل', flag: '🇧🇷', category: 'currency' },
   'ARS': { name: 'پزو آرژانتین', flag: '🇦🇷', category: 'currency' },
-  
-  // طلا و سکه
-  'IR_GOLD_18K': { name: 'طلا ۱۸ عیار', flag: '🏆', category: 'gold' },
-  'IR_GOLD_24K': { name: 'طلا ۲۴ عیار', flag: '🥇', category: 'gold' },
-  'IR_GOLD_MESGHAL': { name: 'مثقال طلا', flag: '⚖️', category: 'gold' },
-  'IR_GOLD_OUNCE': { name: 'انس طلا', flag: '🌟', category: 'gold' },
-  'IR_COIN_EMAMI': { name: 'سکه امامی', flag: '🪙', category: 'gold' },
-  'IR_COIN_BAHAR': { name: 'سکه بهار', flag: '🌸', category: 'gold' },
-  'IR_COIN_HALF': { name: 'نیم سکه', flag: '💎', category: 'gold' },
-  'IR_COIN_QUARTER': { name: 'ربع سکه', flag: '💍', category: 'gold' },
-  
-  // کریپتو
-  'BTC': { name: 'بیت‌کوین', flag: '₿', category: 'crypto' },
-  'ETH': { name: 'اتریوم', flag: '◆', category: 'crypto' },
-  'USDT': { name: 'تتر', flag: '₮', category: 'crypto' },
-  'BNB': { name: 'بایننس کوین', flag: '◉', category: 'crypto' },
+  'IR_GOLD_18K': { name: 'طلا ۱۸ عیار', flag: '', category: 'gold' },
+  'IR_GOLD_24K': { name: 'طلا ۲۴ عیار', flag: '', category: 'gold' },
+  'IR_GOLD_MESGHAL': { name: 'مثقال طلا', flag: '', category: 'gold' },
+  'IR_GOLD_OUNCE': { name: 'انس طلا', flag: '', category: 'gold' },
+  'IR_COIN_EMAMI': { name: 'سکه امامی', flag: '', category: 'gold' },
+  'IR_COIN_BAHAR': { name: 'سکه بهار', flag: '', category: 'gold' },
+  'IR_COIN_HALF': { name: 'نیم سکه', flag: '', category: 'gold' },
+  'IR_COIN_QUARTER': { name: 'ربع سکه', flag: '', category: 'gold' },
+  'BTC': { name: 'بیت‌کوین', flag: '', category: 'crypto' },
+  'ETH': { name: 'اتریوم', flag: '', category: 'crypto' },
+  'USDT': { name: 'تتر', flag: '', category: 'crypto' },
+  'BNB': { name: 'بایننس کوین', flag: '', category: 'crypto' },
 };
 
 const DEFAULT_SELECTED = ['USDT_IRT', 'EUR', 'IR_GOLD_18K', 'IR_COIN_EMAMI', 'BTC'];
@@ -100,40 +88,51 @@ export default function App() {
   const [lastUpdate, setLastUpdate] = useState('');
   const [persianDate, setPersianDate] = useState('');
   const [gregorianDate, setGregorianDate] = useState('');
-  
-  // تبدیل
   const [fromCurrency, setFromCurrency] = useState('USDT_IRT');
   const [toCurrency, setToCurrency] = useState('IR_GOLD_18K');
   const [amount, setAmount] = useState('1000');
   const [result, setResult] = useState('');
 
-  const convertToJalali = (date) => {
-    const g_y = date.getFullYear();
-    const g_m = date.getMonth() + 1;
-    const g_d = date.getDate();
+  // تبدیل درست به شمسی
+  const convertToJalali = (gDate) => {
+    let gy = gDate.getFullYear();
+    let gm = gDate.getMonth() + 1;
+    let gd = gDate.getDate();
     
-    const g_days = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-    let jy = (g_y <= 1600) ? 0 : 979;
-    const gd = g_days[g_m - 1] + g_d;
+    let g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    let jy = (gy <= 1600) ? 0 : 979;
     
-    let jd = 365 * jy + Math.floor(jy / 33) * 8 + Math.floor((jy % 33 + 3) / 4) + 78 + gd;
-    if (g_m > 2 && ((g_y % 4 === 0 && g_y % 100 !== 0) || g_y % 400 === 0)) jd += 1;
+    gy -= (gy <= 1600) ? 621 : 1600;
+    let gy2 = (gm > 2) ? (gy + 1) : gy;
     
-    let j_y = -1595 + 33 * Math.floor(jd / 12053);
-    jd %= 12053;
-    j_y += 4 * Math.floor(jd / 1461);
-    jd %= 1461;
+    let days = (365 * gy) + (Math.floor((gy2 + 3) / 4)) - (Math.floor((gy2 + 99) / 100)) + 
+               (Math.floor((gy2 + 399) / 400)) - 80 + gd + g_d_m[gm - 1];
     
-    if (jd > 365) {
-      j_y += Math.floor((jd - 1) / 365);
-      jd = (jd - 1) % 365;
+    jy += 33 * Math.floor(days / 12053);
+    days %= 12053;
+    
+    jy += 4 * Math.floor(days / 1461);
+    days %= 1461;
+    
+    if (days > 365) {
+      jy += Math.floor((days - 1) / 365);
+      days = (days - 1) % 365;
     }
     
-    const j_m = (jd < 186) ? 1 + Math.floor(jd / 31) : 7 + Math.floor((jd - 186) / 30);
-    const j_d = 1 + ((jd < 186) ? (jd % 31) : ((jd - 186) % 30));
+    let jm, jd;
+    if (days < 186) {
+      jm = 1 + Math.floor(days / 31);
+      jd = 1 + (days % 31);
+    } else {
+      jm = 7 + Math.floor((days - 186) / 30);
+      jd = 1 + ((days - 186) % 30);
+    }
     
+    const weekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
     const months = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
-    return `${j_d} ${months[j_m - 1]} ${j_y}`;
+    const weekDay = weekDays[gDate.getDay()];
+    
+    return `${weekDay} ${jd} ${months[jm - 1]} ${jy}`;
   };
 
   const updateDates = () => {
@@ -283,7 +282,6 @@ export default function App() {
     if (fromRate && toRate && amountNum) {
       const converted = (amountNum * fromRate) / toRate;
       
-      const fromInfo = getDisplayInfo(fromCurrency);
       const toInfo = getDisplayInfo(toCurrency);
       
       if (toCurrency.includes('GOLD_18K') || toCurrency.includes('GOLD_24K')) {
@@ -306,11 +304,82 @@ export default function App() {
     }
   }, [amount, fromCurrency, toCurrency, converterVisible]);
 
+  if (converterVisible) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
+        
+        <View style={styles.converterHeader}>
+          <TouchableOpacity onPress={() => setConverterVisible(false)} style={styles.backButton}>
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
+          <Text style={styles.converterTitle}>تبدیل ارز</Text>
+          <View style={{width: 40}} />
+        </View>
+        
+        <ScrollView style={styles.converterScreen}>
+          <Text style={styles.converterLabel}>از:</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyPicker}>
+            {allItems.map(symbol => {
+              const info = getDisplayInfo(symbol);
+              return (
+                <TouchableOpacity
+                  key={symbol}
+                  style={[
+                    styles.currencyOption,
+                    fromCurrency === symbol && styles.currencyOptionSelected
+                  ]}
+                  onPress={() => setFromCurrency(symbol)}
+                >
+                  <Text style={styles.currencyOptionText}>{info.name}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+          
+          <Text style={styles.converterLabel}>مقدار:</Text>
+          <TextInput
+            style={styles.input}
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="numeric"
+            placeholder="مثال: 1000"
+            placeholderTextColor="#999"
+          />
+          
+          <Text style={styles.converterLabel}>به:</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyPicker}>
+            {allItems.map(symbol => {
+              const info = getDisplayInfo(symbol);
+              return (
+                <TouchableOpacity
+                  key={symbol}
+                  style={[
+                    styles.currencyOption,
+                    toCurrency === symbol && styles.currencyOptionSelected
+                  ]}
+                  onPress={() => setToCurrency(symbol)}
+                >
+                  <Text style={styles.currencyOptionText}>{info.name}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+          
+          <View style={styles.resultContainer}>
+            <Text style={styles.resultLabel}>نتیجه:</Text>
+            <Text style={styles.resultText}>{result}</Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       
-      {/* هدر */}
+      {/* هدر بزرگ‌تر */}
       <View style={styles.header}>
         <View style={styles.dateContainer}>
           <Text style={styles.datePersian}>{persianDate}</Text>
@@ -319,9 +388,17 @@ export default function App() {
         </View>
       </View>
 
+      {/* دکمه ماشین‌حساب زیر هدر */}
+      <TouchableOpacity 
+        style={styles.calcButton}
+        onPress={() => setConverterVisible(true)}
+      >
+        <Text style={styles.calcIcon}>🧮</Text>
+      </TouchableOpacity>
+
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#00D9A5" />
+          <ActivityIndicator size="large" color="#00CBA9" />
           <Text style={styles.loadingText}>در حال بارگذاری...</Text>
         </View>
       ) : error ? (
@@ -338,7 +415,7 @@ export default function App() {
             return (
               <View key={symbol} style={styles.card}>
                 <View style={styles.cardHeader}>
-                  <Text style={styles.flag}>{info.category === 'currency' ? info.flag : ''}</Text>
+                  {info.category === 'currency' && <Text style={styles.flag}>{info.flag}</Text>}
                   <Text style={styles.name}>{info.name}</Text>
                 </View>
                 <Text style={styles.price}>
@@ -348,16 +425,6 @@ export default function App() {
             );
           })}
           
-          {/* دکمه تبدیل */}
-          <TouchableOpacity 
-            style={styles.converterButton}
-            onPress={() => setConverterVisible(true)}
-          >
-            <Text style={styles.converterIcon}>🧮</Text>
-            <Text style={styles.converterText}>تبدیل ارز</Text>
-          </TouchableOpacity>
-          
-          {/* دکمه تنظیمات */}
           <TouchableOpacity 
             style={styles.settingsButton}
             onPress={() => setModalVisible(true)}
@@ -414,7 +481,7 @@ export default function App() {
                           ]}
                           onPress={() => toggleItem(symbol)}
                         >
-                          <Text style={styles.modalItemFlag}>{info.category === 'currency' ? info.flag : ''}</Text>
+                          {info.category === 'currency' && <Text style={styles.modalItemFlag}>{info.flag}</Text>}
                           <Text style={styles.modalItemText}>{info.name}</Text>
                           {selectedItems.includes(symbol) && (
                             <Text style={styles.checkmark}>✓</Text>
@@ -436,158 +503,91 @@ export default function App() {
           </View>
         </View>
       </Modal>
-
-      {/* مودال تبدیل */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={converterVisible}
-        onRequestClose={() => setConverterVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>تبدیل ارز 🧮</Text>
-              <TouchableOpacity onPress={() => setConverterVisible(false)}>
-                <Text style={styles.closeButton}>✕</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView style={styles.converterContainer}>
-              <Text style={styles.converterLabel}>از:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyPicker}>
-                {allItems.map(symbol => {
-                  const info = getDisplayInfo(symbol);
-                  return (
-                    <TouchableOpacity
-                      key={symbol}
-                      style={[
-                        styles.currencyOption,
-                        fromCurrency === symbol && styles.currencyOptionSelected
-                      ]}
-                      onPress={() => setFromCurrency(symbol)}
-                    >
-                      <Text style={styles.currencyOptionText}>{info.name}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-              
-              <Text style={styles.converterLabel}>مقدار:</Text>
-              <TextInput
-                style={styles.input}
-                value={amount}
-                onChangeText={setAmount}
-                keyboardType="numeric"
-                placeholder="مثال: 1000"
-                placeholderTextColor="#666"
-              />
-              
-              <Text style={styles.converterLabel}>به:</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyPicker}>
-                {allItems.map(symbol => {
-                  const info = getDisplayInfo(symbol);
-                  return (
-                    <TouchableOpacity
-                      key={symbol}
-                      style={[
-                        styles.currencyOption,
-                        toCurrency === symbol && styles.currencyOptionSelected
-                      ]}
-                      onPress={() => setToCurrency(symbol)}
-                    >
-                      <Text style={styles.currencyOptionText}>{info.name}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-              
-              <View style={styles.resultContainer}>
-                <Text style={styles.resultLabel}>نتیجه:</Text>
-                <Text style={styles.resultText}>{result}</Text>
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A1628' },
+  container: { flex: 1, backgroundColor: '#F0F9F6' },
   header: {
-    backgroundColor: 'linear-gradient(135deg, #00D9A5 0%, #00A67E 100%)',
-    paddingTop: 20,
-    paddingBottom: 25,
+    backgroundColor: '#E8F8F5',
+    paddingTop: 25,
+    paddingBottom: 35,
     paddingHorizontal: 20,
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
-    shadowColor: '#00D9A5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 35,
+    shadowColor: '#00CBA9',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
   dateContainer: { alignItems: 'center' },
-  datePersian: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 6 },
-  dateGregorian: { fontSize: 14, color: 'rgba(255, 255, 255, 0.8)', marginBottom: 8 },
-  lastUpdateText: { fontSize: 11, color: 'rgba(255, 255, 255, 0.7)' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
-  loadingText: { color: '#00D9A5', fontSize: 16, marginTop: 15 },
-  errorIcon: { fontSize: 60, marginBottom: 15 },
-  error: { color: '#FF6B6B', fontSize: 18, textAlign: 'center' },
-  list: { flex: 1, padding: 16 },
-  card: {
-    backgroundColor: '#1A2742',
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 217, 165, 0.15)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+  datePersian: { fontSize: 28, fontWeight: 'bold', color: '#1A5F4F', marginBottom: 8 },
+  dateGregorian: { fontSize: 15, color: '#5B7A6F', marginBottom: 10 },
+  lastUpdateText: { fontSize: 12, color: '#7D9B8F' },
+  calcButton: {
+    position: 'absolute',
+    top: 135,
+    left: 20,
+    width: 50,
+    height: 50,
+    backgroundColor: '#00CBA9',
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#00CBA9',
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
+    zIndex: 10,
+  },
+  calcIcon: { fontSize: 26 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
+  loadingText: { color: '#00CBA9', fontSize: 16, marginTop: 15 },
+  errorIcon: { fontSize: 60, marginBottom: 15 },
+  error: { color: '#E74C3C', fontSize: 18, textAlign: 'center' },
+  list: { flex: 1, padding: 16, marginTop: 35 },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 14,
+    borderWidth: 2,
+    borderColor: '#D4F1E8',
+    shadowColor: '#00CBA9',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 3,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   flag: { fontSize: 28, marginRight: 12 },
-  name: { fontSize: 17, fontWeight: '600', color: '#FFFFFF', flex: 1 },
-  price: { fontSize: 22, fontWeight: 'bold', color: '#00D9A5', textAlign: 'right' },
-  converterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#00D9A5',
-    padding: 16,
-    borderRadius: 15,
-    marginTop: 10,
-    marginBottom: 12,
-    shadowColor: '#00D9A5',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 5,
-    elevation: 6,
-  },
-  converterIcon: { fontSize: 24, marginRight: 10 },
-  converterText: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold' },
+  name: { fontSize: 17, fontWeight: '600', color: '#2C3E50', flex: 1 },
+  price: { fontSize: 22, fontWeight: 'bold', color: '#00CBA9', textAlign: 'right' },
   settingsButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#00A67E',
+    backgroundColor: '#4ECDC4',
     padding: 16,
     borderRadius: 15,
+    marginTop: 10,
     marginBottom: 20,
+    shadowColor: '#4ECDC4',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5,
   },
   settingsIcon: { fontSize: 24, marginRight: 10 },
   settingsText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
   footer: { alignItems: 'center', paddingVertical: 25 },
-  footerText: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 12 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.85)', justifyContent: 'flex-end' },
+  footerText: { color: '#95A5A6', fontSize: 12 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'flex-end' },
   modalContent: {
-    backgroundColor: '#1A2742',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     maxHeight: '85%',
@@ -599,15 +599,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 217, 165, 0.2)',
+    borderBottomColor: '#E8F8F5',
   },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#00D9A5' },
-  closeButton: { fontSize: 30, color: '#FFFFFF', fontWeight: '300' },
+  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#00CBA9' },
+  closeButton: { fontSize: 30, color: '#95A5A6', fontWeight: '300' },
   modalList: { padding: 15 },
   categoryTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#00D9A5',
+    color: '#00CBA9',
     marginTop: 15,
     marginBottom: 10,
     marginRight: 10,
@@ -615,64 +615,85 @@ const styles = StyleSheet.create({
   modalItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#F8FCFB',
     padding: 15,
     borderRadius: 12,
     marginBottom: 8,
   },
   modalItemSelected: {
-    backgroundColor: 'rgba(0, 217, 165, 0.2)',
+    backgroundColor: '#D4F1E8',
     borderWidth: 2,
-    borderColor: '#00D9A5',
+    borderColor: '#00CBA9',
   },
   modalItemFlag: { fontSize: 24, marginRight: 12 },
-  modalItemText: { flex: 1, fontSize: 16, color: '#FFFFFF' },
-  checkmark: { fontSize: 24, color: '#00D9A5', fontWeight: 'bold' },
+  modalItemText: { flex: 1, fontSize: 16, color: '#2C3E50' },
+  checkmark: { fontSize: 24, color: '#00CBA9', fontWeight: 'bold' },
   doneButton: {
-    backgroundColor: '#00D9A5',
+    backgroundColor: '#00CBA9',
     marginHorizontal: 20,
     padding: 16,
     borderRadius: 15,
     alignItems: 'center',
+    shadowColor: '#00CBA9',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
   },
   doneButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
-  converterContainer: { padding: 20 },
+  converterHeader: {
+    backgroundColor: '#E8F8F5',
+    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+  },
+  backButton: { padding: 5 },
+  backIcon: { fontSize: 28, color: '#00CBA9', fontWeight: 'bold' },
+  converterTitle: { fontSize: 22, fontWeight: 'bold', color: '#1A5F4F' },
+  converterScreen: { flex: 1, padding: 20, backgroundColor: '#F0F9F6' },
   converterLabel: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: '#00D9A5',
-    marginTop: 15,
-    marginBottom: 10,
+    color: '#00CBA9',
+    marginTop: 20,
+    marginBottom: 12,
   },
   currencyPicker: { marginBottom: 10 },
   currencyOption: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 10,
-    marginRight: 8,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginRight: 10,
+    borderWidth: 2,
+    borderColor: '#D4F1E8',
   },
   currencyOptionSelected: {
-    backgroundColor: '#00D9A5',
+    backgroundColor: '#00CBA9',
+    borderColor: '#00CBA9',
   },
-  currencyOptionText: { color: '#FFFFFF', fontSize: 14 },
+  currencyOptionText: { color: '#2C3E50', fontSize: 15, fontWeight: '600' },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    color: '#FFFFFF',
-    padding: 15,
-    borderRadius: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 217, 165, 0.3)',
+    backgroundColor: '#FFFFFF',
+    color: '#2C3E50',
+    padding: 18,
+    borderRadius: 15,
+    fontSize: 17,
+    borderWidth: 2,
+    borderColor: '#D4F1E8',
+    fontWeight: '600',
   },
   resultContainer: {
-    backgroundColor: 'rgba(0, 217, 165, 0.1)',
-    padding: 20,
-    borderRadius: 15,
-    marginTop: 20,
-    borderWidth: 2,
-    borderColor: '#00D9A5',
+    backgroundColor: '#D4F1E8',
+    padding: 25,
+    borderRadius: 20,
+    marginTop: 25,
+    borderWidth: 3,
+    borderColor: '#00CBA9',
   },
-  resultLabel: { fontSize: 14, color: '#00D9A5', marginBottom: 8 },
-  resultText: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' },
+  resultLabel: { fontSize: 15, color: '#1A5F4F', marginBottom: 10, fontWeight: '600' },
+  resultText: { fontSize: 26, fontWeight: 'bold', color: '#00CBA9', textAlign: 'center' },
 });
