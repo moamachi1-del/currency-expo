@@ -19,8 +19,12 @@ const CACHE_KEY = '@arzban_cache';
 const LAST_UPDATE_KEY = '@arzban_last_update';
 const SELECTED_ITEMS_KEY = '@arzban_selected';
 
-// لیست کامل ارزها
+// لیست کامل - فقط چیزهایی که تو API هست + تومان
 const DISPLAY_MAP = {
+  // تومان (برای تبدیل)
+  'TOMAN': { name: 'تومان', flag: '🇮🇷', category: 'currency' },
+  
+  // ارزها
   'USDT_IRT': { name: 'تتر (دلار)', flag: '🇺🇸', category: 'currency' },
   'EUR': { name: 'یورو', flag: '🇪🇺', category: 'currency' },
   'GBP': { name: 'پوند انگلیس', flag: '🇬🇧', category: 'currency' },
@@ -61,25 +65,27 @@ const DISPLAY_MAP = {
   'MXN': { name: 'پزو مکزیک', flag: '🇲🇽', category: 'currency' },
   'BRL': { name: 'رئال برزیل', flag: '🇧🇷', category: 'currency' },
   'ARS': { name: 'پزو آرژانتین', flag: '🇦🇷', category: 'currency' },
+  
+  // طلا و سکه
   'IR_GOLD_18K': { name: 'طلا ۱۸ عیار', flag: '', category: 'gold' },
   'IR_GOLD_24K': { name: 'طلا ۲۴ عیار', flag: '', category: 'gold' },
-  'IR_GOLD_MESGHAL': { name: 'مثقال طلا', flag: '', category: 'gold' },
-  'IR_GOLD_OUNCE': { name: 'انس طلا', flag: '', category: 'gold' },
+  'IR_GOLD_MELTED': { name: 'طلا آب شده', flag: '', category: 'gold' },
+  'MAUSD': { name: 'انس طلا', flag: '', category: 'gold' },
   'IR_COIN_EMAMI': { name: 'سکه امامی', flag: '', category: 'gold' },
   'IR_COIN_BAHAR': { name: 'سکه بهار', flag: '', category: 'gold' },
   'IR_COIN_HALF': { name: 'نیم سکه', flag: '', category: 'gold' },
   'IR_COIN_QUARTER': { name: 'ربع سکه', flag: '', category: 'gold' },
+  
+  // کریپتو - فقط BTC و ETH
   'BTC': { name: 'بیت‌کوین', flag: '', category: 'crypto' },
   'ETH': { name: 'اتریوم', flag: '', category: 'crypto' },
-  'USDT': { name: 'تتر', flag: '', category: 'crypto' },
-  'BNB': { name: 'بایننس کوین', flag: '', category: 'crypto' },
 };
 
 const DEFAULT_SELECTED = ['USDT_IRT', 'EUR', 'IR_GOLD_18K', 'IR_COIN_EMAMI', 'BTC'];
 
 export default function App() {
-  const [rates, setRates] = useState({});
-  const [allItems, setAllItems] = useState([]);
+  const [rates, setRates] = useState({ TOMAN: 1 }); // تومان = 1
+  const [allItems, setAllItems] = useState(['TOMAN']); // شامل تومان
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -141,10 +147,6 @@ export default function App() {
     
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     setGregorianDate(`${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`);
-    
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    setLastUpdate(`${hours}:${minutes}`);
   };
 
   const loadFromCache = async () => {
@@ -153,7 +155,10 @@ export default function App() {
       const cachedUpdate = await AsyncStorage.getItem(LAST_UPDATE_KEY);
       const cachedSelected = await AsyncStorage.getItem(SELECTED_ITEMS_KEY);
       
-      if (cachedData) setRates(JSON.parse(cachedData));
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        setRates({ ...parsed, TOMAN: 1 });
+      }
       if (cachedUpdate) setLastUpdate(cachedUpdate);
       if (cachedSelected) setSelectedItems(JSON.parse(cachedSelected));
       updateDates();
@@ -197,12 +202,15 @@ export default function App() {
       
       const data = await response.json();
       
-      const newRates = {};
-      const items = [];
+      const newRates = { TOMAN: 1 };
+      const items = ['TOMAN'];
+      
+      // فقط چیزهایی که تو DISPLAY_MAP هست رو اضافه کن
+      const allowedSymbols = Object.keys(DISPLAY_MAP).filter(k => k !== 'TOMAN');
       
       if (data.gold && Array.isArray(data.gold)) {
         data.gold.forEach(item => {
-          if (item.symbol && item.price) {
+          if (item.symbol && item.price && allowedSymbols.includes(item.symbol)) {
             newRates[item.symbol] = parseInt(item.price);
             items.push(item.symbol);
           }
@@ -211,7 +219,7 @@ export default function App() {
       
       if (data.currency && Array.isArray(data.currency)) {
         data.currency.forEach(item => {
-          if (item.symbol && item.price) {
+          if (item.symbol && item.price && allowedSymbols.includes(item.symbol)) {
             newRates[item.symbol] = parseInt(item.price);
             items.push(item.symbol);
           }
@@ -220,7 +228,7 @@ export default function App() {
       
       if (data.cryptocurrency && Array.isArray(data.cryptocurrency)) {
         data.cryptocurrency.forEach(item => {
-          if (item.symbol && item.price) {
+          if (item.symbol && item.price && allowedSymbols.includes(item.symbol)) {
             newRates[item.symbol] = parseInt(item.price);
             items.push(item.symbol);
           }
@@ -231,8 +239,10 @@ export default function App() {
       setAllItems(items);
       updateDates();
       
+      // ذخیره زمان واقعی آپدیت
       const now = new Date();
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+      setLastUpdate(timeStr);
       await saveToCache(newRates, timeStr);
       
     } catch (err) {
@@ -275,16 +285,18 @@ export default function App() {
   };
 
   const calculateConversion = () => {
-    const fromRate = rates[fromCurrency];
-    const toRate = rates[toCurrency];
-    const amountNum = parseFloat(amount);
+    const fromRate = rates[fromCurrency] || 1;
+    const toRate = rates[toCurrency] || 1;
+    const amountNum = parseFloat(amount) || 0;
     
-    if (fromRate && toRate && amountNum) {
+    if (amountNum > 0) {
       const converted = (amountNum * fromRate) / toRate;
       
       const toInfo = getDisplayInfo(toCurrency);
       
-      if (toCurrency.includes('GOLD_18K') || toCurrency.includes('GOLD_24K')) {
+      if (toCurrency === 'TOMAN') {
+        setResult(`${Math.round(converted).toLocaleString('fa-IR')} تومان`);
+      } else if (toCurrency.includes('GOLD')) {
         setResult(`${converted.toFixed(2)} گرم ${toInfo.name}`);
       } else if (toCurrency.includes('COIN')) {
         setResult(`${converted.toFixed(4)} ${toInfo.name}`);
@@ -302,7 +314,7 @@ export default function App() {
     if (converterVisible) {
       calculateConversion();
     }
-  }, [amount, fromCurrency, toCurrency, converterVisible]);
+  }, [amount, fromCurrency, toCurrency, converterVisible, rates]);
 
   if (converterVisible) {
     return (
@@ -331,7 +343,9 @@ export default function App() {
                   ]}
                   onPress={() => setFromCurrency(symbol)}
                 >
-                  <Text style={styles.currencyOptionText}>{info.name}</Text>
+                  <Text style={[styles.currencyOptionText, fromCurrency === symbol && styles.currencyOptionTextSelected]}>
+                    {info.name}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -360,7 +374,9 @@ export default function App() {
                   ]}
                   onPress={() => setToCurrency(symbol)}
                 >
-                  <Text style={styles.currencyOptionText}>{info.name}</Text>
+                  <Text style={[styles.currencyOptionText, toCurrency === symbol && styles.currencyOptionTextSelected]}>
+                    {info.name}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -379,7 +395,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       
-      {/* هدر بزرگ‌تر */}
+      {/* هدر خیلی بلند */}
       <View style={styles.header}>
         <View style={styles.dateContainer}>
           <Text style={styles.datePersian}>{persianDate}</Text>
@@ -388,7 +404,7 @@ export default function App() {
         </View>
       </View>
 
-      {/* دکمه ماشین‌حساب زیر هدر */}
+      {/* دکمه ماشین‌حساب */}
       <TouchableOpacity 
         style={styles.calcButton}
         onPress={() => setConverterVisible(true)}
@@ -511,8 +527,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0F9F6' },
   header: {
     backgroundColor: '#E8F8F5',
-    paddingTop: 25,
-    paddingBottom: 35,
+    paddingTop: 40,
+    paddingBottom: 60,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 35,
     borderBottomRightRadius: 35,
@@ -522,18 +538,18 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
-  dateContainer: { alignItems: 'center' },
-  datePersian: { fontSize: 28, fontWeight: 'bold', color: '#1A5F4F', marginBottom: 8 },
-  dateGregorian: { fontSize: 15, color: '#5B7A6F', marginBottom: 10 },
-  lastUpdateText: { fontSize: 12, color: '#7D9B8F' },
+  dateContainer: { alignItems: 'center', marginTop: 15 },
+  datePersian: { fontSize: 30, fontWeight: 'bold', color: '#1A5F4F', marginBottom: 10 },
+  dateGregorian: { fontSize: 16, color: '#5B7A6F', marginBottom: 12 },
+  lastUpdateText: { fontSize: 13, color: '#7D9B8F' },
   calcButton: {
     position: 'absolute',
-    top: 135,
+    top: 165,
     left: 20,
-    width: 50,
-    height: 50,
+    width: 55,
+    height: 55,
     backgroundColor: '#00CBA9',
-    borderRadius: 25,
+    borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#00CBA9',
@@ -543,12 +559,12 @@ const styles = StyleSheet.create({
     elevation: 6,
     zIndex: 10,
   },
-  calcIcon: { fontSize: 26 },
+  calcIcon: { fontSize: 28 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
   loadingText: { color: '#00CBA9', fontSize: 16, marginTop: 15 },
   errorIcon: { fontSize: 60, marginBottom: 15 },
   error: { color: '#E74C3C', fontSize: 18, textAlign: 'center' },
-  list: { flex: 1, padding: 16, marginTop: 35 },
+  list: { flex: 1, padding: 16, marginTop: 40 },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
@@ -676,6 +692,7 @@ const styles = StyleSheet.create({
     borderColor: '#00CBA9',
   },
   currencyOptionText: { color: '#2C3E50', fontSize: 15, fontWeight: '600' },
+  currencyOptionTextSelected: { color: '#FFFFFF' },
   input: {
     backgroundColor: '#FFFFFF',
     color: '#2C3E50',
