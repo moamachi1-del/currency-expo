@@ -8,7 +8,8 @@ import {
   ActivityIndicator,
   Modal,
   SafeAreaView,
-  RefreshControl,
+  TextInput,
+  Platform,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,52 +20,93 @@ const CACHE_KEY = '@arzban_cache';
 const LAST_UPDATE_KEY = '@arzban_last_update';
 const SELECTED_ITEMS_KEY = '@arzban_selected';
 
-// مپینگ symbol به اطلاعات نمایشی
+// لیست کامل با ۴۰+ ارز و پرچم‌ها
 const DISPLAY_MAP = {
-  // طلا
-  'IR_GOLD_18K': { name: 'طلا ۱۸ عیار', icon: '💍', category: 'gold' },
-  'IR_GOLD_24K': { name: 'طلا ۲۴ عیار', icon: '🏆', category: 'gold' },
-  'IR_GOLD_MESGHAL': { name: 'مثقال طلا', icon: '⚖️', category: 'gold' },
-  'IR_GOLD_OUNCE': { name: 'انس طلا', icon: '🥇', category: 'gold' },
+  // ایران و همسایگان
+  'USDT_IRT': { name: 'تتر (دلار)', flag: '🇺🇸', category: 'currency' },
+  'EUR': { name: 'یورو', flag: '🇪🇺', category: 'currency' },
+  'GBP': { name: 'پوند انگلیس', flag: '🇬🇧', category: 'currency' },
+  'TRY': { name: 'لیر ترکیه', flag: '🇹🇷', category: 'currency' },
+  'AED': { name: 'درهم امارات', flag: '🇦🇪', category: 'currency' },
+  'SAR': { name: 'ریال سعودی', flag: '🇸🇦', category: 'currency' },
+  'QAR': { name: 'ریال قطر', flag: '🇶🇦', category: 'currency' },
+  'OMR': { name: 'ریال عمان', flag: '🇴🇲', category: 'currency' },
+  'KWD': { name: 'دینار کویت', flag: '🇰🇼', category: 'currency' },
+  'IQD': { name: 'دینار عراق', flag: '🇮🇶', category: 'currency' },
+  'SYP': { name: 'لیر سوریه', flag: '🇸🇾', category: 'currency' },
+  'AFN': { name: 'افغانی', flag: '🇦🇫', category: 'currency' },
+  'AMD': { name: 'درام ارمنستان', flag: '🇦🇲', category: 'currency' },
+  'AZN': { name: 'منات آذربایجان', flag: '🇦🇿', category: 'currency' },
+  'GEL': { name: 'لاری گرجستان', flag: '🇬🇪', category: 'currency' },
   
-  // سکه
-  'IR_COIN_EMAMI': { name: 'سکه امامی', icon: '🪙', category: 'gold' },
-  'IR_COIN_BAHAR': { name: 'سکه بهار', icon: '🌸', category: 'gold' },
-  'IR_COIN_HALF': { name: 'نیم سکه', icon: '🔸', category: 'gold' },
-  'IR_COIN_QUARTER': { name: 'ربع سکه', icon: '🔹', category: 'gold' },
+  // آسیا
+  'CNY': { name: 'یوان چین', flag: '🇨🇳', category: 'currency' },
+  'JPY': { name: 'ین ژاپن', flag: '🇯🇵', category: 'currency' },
+  'KRW': { name: 'وون کره', flag: '🇰🇷', category: 'currency' },
+  'INR': { name: 'روپیه هند', flag: '🇮🇳', category: 'currency' },
+  'PKR': { name: 'روپیه پاکستان', flag: '🇵🇰', category: 'currency' },
+  'THB': { name: 'بات تایلند', flag: '🇹🇭', category: 'currency' },
+  'SGD': { name: 'دلار سنگاپور', flag: '🇸🇬', category: 'currency' },
+  'MYR': { name: 'رینگیت مالزی', flag: '🇲🇾', category: 'currency' },
+  'IDR': { name: 'روپیه اندونزی', flag: '🇮🇩', category: 'currency' },
+  'VND': { name: 'دونگ ویتنام', flag: '🇻🇳', category: 'currency' },
   
-  // ارز
-  'USDT_IRT': { name: 'تتر (دلار)', icon: '🇺🇸', category: 'currency' },
-  'EUR': { name: 'یورو', icon: '🇪🇺', category: 'currency' },
-  'GBP': { name: 'پوند', icon: '🇬🇧', category: 'currency' },
-  'CHF': { name: 'فرانک سوئیس', icon: '🇨🇭', category: 'currency' },
-  'TRY': { name: 'لیر ترکیه', icon: '🇹🇷', category: 'currency' },
-  'AED': { name: 'درهم امارات', icon: '🇦🇪', category: 'currency' },
-  'CNY': { name: 'یوان چین', icon: '🇨🇳', category: 'currency' },
-  'RUB': { name: 'روبل روسیه', icon: '🇷🇺', category: 'currency' },
+  // اروپا
+  'CHF': { name: 'فرانک سوئیس', flag: '🇨🇭', category: 'currency' },
+  'NOK': { name: 'کرون نروژ', flag: '🇳🇴', category: 'currency' },
+  'SEK': { name: 'کرون سوئد', flag: '🇸🇪', category: 'currency' },
+  'DKK': { name: 'کرون دانمارک', flag: '🇩🇰', category: 'currency' },
+  'PLN': { name: 'زلوتی لهستان', flag: '🇵🇱', category: 'currency' },
+  'CZK': { name: 'کرون چک', flag: '🇨🇿', category: 'currency' },
+  'HUF': { name: 'فورینت مجارستان', flag: '🇭🇺', category: 'currency' },
+  'RON': { name: 'لئو رومانی', flag: '🇷🇴', category: 'currency' },
+  'RUB': { name: 'روبل روسیه', flag: '🇷🇺', category: 'currency' },
+  
+  // آمریکا و اقیانوسیه
+  'CAD': { name: 'دلار کانادا', flag: '🇨🇦', category: 'currency' },
+  'AUD': { name: 'دلار استرالیا', flag: '🇦🇺', category: 'currency' },
+  'NZD': { name: 'دلار نیوزیلند', flag: '🇳🇿', category: 'currency' },
+  'MXN': { name: 'پزو مکزیک', flag: '🇲🇽', category: 'currency' },
+  'BRL': { name: 'رئال برزیل', flag: '🇧🇷', category: 'currency' },
+  'ARS': { name: 'پزو آرژانتین', flag: '🇦🇷', category: 'currency' },
+  
+  // طلا و سکه
+  'IR_GOLD_18K': { name: 'طلا ۱۸ عیار', flag: '🏆', category: 'gold' },
+  'IR_GOLD_24K': { name: 'طلا ۲۴ عیار', flag: '🥇', category: 'gold' },
+  'IR_GOLD_MESGHAL': { name: 'مثقال طلا', flag: '⚖️', category: 'gold' },
+  'IR_GOLD_OUNCE': { name: 'انس طلا', flag: '🌟', category: 'gold' },
+  'IR_COIN_EMAMI': { name: 'سکه امامی', flag: '🪙', category: 'gold' },
+  'IR_COIN_BAHAR': { name: 'سکه بهار', flag: '🌸', category: 'gold' },
+  'IR_COIN_HALF': { name: 'نیم سکه', flag: '💎', category: 'gold' },
+  'IR_COIN_QUARTER': { name: 'ربع سکه', flag: '💍', category: 'gold' },
   
   // کریپتو
-  'BTC': { name: 'بیت‌کوین', icon: '₿', category: 'crypto' },
-  'ETH': { name: 'اتریوم', icon: '♦️', category: 'crypto' },
-  'USDT': { name: 'تتر', icon: '💵', category: 'crypto' },
+  'BTC': { name: 'بیت‌کوین', flag: '₿', category: 'crypto' },
+  'ETH': { name: 'اتریوم', flag: '◆', category: 'crypto' },
+  'USDT': { name: 'تتر', flag: '₮', category: 'crypto' },
+  'BNB': { name: 'بایننس کوین', flag: '◉', category: 'crypto' },
 };
 
-// پیش‌فرض
 const DEFAULT_SELECTED = ['USDT_IRT', 'EUR', 'IR_GOLD_18K', 'IR_COIN_EMAMI', 'BTC'];
 
 export default function App() {
   const [rates, setRates] = useState({});
   const [allItems, setAllItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [converterVisible, setConverterVisible] = useState(false);
   const [selectedItems, setSelectedItems] = useState(DEFAULT_SELECTED);
   const [lastUpdate, setLastUpdate] = useState('');
   const [persianDate, setPersianDate] = useState('');
   const [gregorianDate, setGregorianDate] = useState('');
+  
+  // تبدیل
+  const [fromCurrency, setFromCurrency] = useState('USDT_IRT');
+  const [toCurrency, setToCurrency] = useState('IR_GOLD_18K');
+  const [amount, setAmount] = useState('1000');
+  const [result, setResult] = useState('');
 
-  // تبدیل به شمسی
   const convertToJalali = (date) => {
     const g_y = date.getFullYear();
     const g_m = date.getMonth() + 1;
@@ -98,13 +140,14 @@ export default function App() {
     const now = new Date();
     setPersianDate(convertToJalali(now));
     
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    setGregorianDate(`${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`);
+    
     const hours = now.getHours().toString().padStart(2, '0');
     const minutes = now.getMinutes().toString().padStart(2, '0');
-    setGregorianDate(`${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${hours}:${minutes}`);
     setLastUpdate(`${hours}:${minutes}`);
   };
 
-  // کش
   const loadFromCache = async () => {
     try {
       const cachedData = await AsyncStorage.getItem(CACHE_KEY);
@@ -116,7 +159,7 @@ export default function App() {
       if (cachedSelected) setSelectedItems(JSON.parse(cachedSelected));
       updateDates();
     } catch (error) {
-      console.log('خطا در بارگذاری کش');
+      console.log('خطا در بارگذاری');
     }
   };
 
@@ -137,9 +180,7 @@ export default function App() {
     }
   };
 
-  // دریافت از API
-  const fetchRates = async (isManual = false) => {
-    if (isManual) setRefreshing(true);
+  const fetchRates = async () => {
     setError(null);
     
     try {
@@ -157,11 +198,9 @@ export default function App() {
       
       const data = await response.json();
       
-      // پردازش داده
       const newRates = {};
       const items = [];
       
-      // طلا
       if (data.gold && Array.isArray(data.gold)) {
         data.gold.forEach(item => {
           if (item.symbol && item.price) {
@@ -171,7 +210,6 @@ export default function App() {
         });
       }
       
-      // ارز
       if (data.currency && Array.isArray(data.currency)) {
         data.currency.forEach(item => {
           if (item.symbol && item.price) {
@@ -181,7 +219,6 @@ export default function App() {
         });
       }
       
-      // کریپتو
       if (data.cryptocurrency && Array.isArray(data.cryptocurrency)) {
         data.cryptocurrency.forEach(item => {
           if (item.symbol && item.price) {
@@ -200,11 +237,10 @@ export default function App() {
       await saveToCache(newRates, timeStr);
       
     } catch (err) {
-      setError('خطا در دریافت: ' + err.message);
+      setError('خطا در دریافت اطلاعات');
     }
     
     setLoading(false);
-    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -216,7 +252,6 @@ export default function App() {
     
     init();
     
-    // هر 5 دقیقه
     const interval = setInterval(() => {
       fetchRates();
     }, 5 * 60 * 1000);
@@ -237,8 +272,39 @@ export default function App() {
   };
 
   const getDisplayInfo = (symbol) => {
-    return DISPLAY_MAP[symbol] || { name: symbol, icon: '💰', category: 'other' };
+    return DISPLAY_MAP[symbol] || { name: symbol, flag: '🌍', category: 'other' };
   };
+
+  const calculateConversion = () => {
+    const fromRate = rates[fromCurrency];
+    const toRate = rates[toCurrency];
+    const amountNum = parseFloat(amount);
+    
+    if (fromRate && toRate && amountNum) {
+      const converted = (amountNum * fromRate) / toRate;
+      
+      const fromInfo = getDisplayInfo(fromCurrency);
+      const toInfo = getDisplayInfo(toCurrency);
+      
+      if (toCurrency.includes('GOLD_18K') || toCurrency.includes('GOLD_24K')) {
+        setResult(`${converted.toFixed(2)} گرم ${toInfo.name}`);
+      } else if (toCurrency.includes('COIN')) {
+        setResult(`${converted.toFixed(4)} ${toInfo.name}`);
+      } else if (toCurrency === 'BTC' || toCurrency === 'ETH') {
+        setResult(`${converted.toFixed(8)} ${toInfo.name}`);
+      } else {
+        setResult(`${Math.round(converted).toLocaleString('fa-IR')} ${toInfo.name}`);
+      }
+    } else {
+      setResult('مقدار را وارد کنید');
+    }
+  };
+
+  useEffect(() => {
+    if (converterVisible) {
+      calculateConversion();
+    }
+  }, [amount, fromCurrency, toCurrency, converterVisible]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -246,13 +312,6 @@ export default function App() {
       
       {/* هدر */}
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <Text style={styles.appTitle}>ارزبان 💰</Text>
-          <TouchableOpacity onPress={() => fetchRates(true)} style={styles.refreshButton}>
-            <Text style={styles.refreshIcon}>↻</Text>
-          </TouchableOpacity>
-        </View>
-        
         <View style={styles.dateContainer}>
           <Text style={styles.datePersian}>{persianDate}</Text>
           <Text style={styles.dateGregorian}>{gregorianDate}</Text>
@@ -262,25 +321,16 @@ export default function App() {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#FFD700" />
+          <ActivityIndicator size="large" color="#00D9A5" />
           <Text style={styles.loadingText}>در حال بارگذاری...</Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
           <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.error}>{error}</Text>
-          <TouchableOpacity onPress={() => fetchRates(true)} style={styles.retryButton}>
-            <Text style={styles.retryText}>تلاش مجدد</Text>
-          </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView 
-          style={styles.list}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => fetchRates(true)} colors={['#FFD700']} />
-          }
-        >
+        <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
           {selectedItems.map(symbol => {
             const info = getDisplayInfo(symbol);
             const value = rates[symbol];
@@ -288,7 +338,7 @@ export default function App() {
             return (
               <View key={symbol} style={styles.card}>
                 <View style={styles.cardHeader}>
-                  <Text style={styles.icon}>{info.icon}</Text>
+                  <Text style={styles.flag}>{info.category === 'currency' ? info.flag : ''}</Text>
                   <Text style={styles.name}>{info.name}</Text>
                 </View>
                 <Text style={styles.price}>
@@ -298,6 +348,16 @@ export default function App() {
             );
           })}
           
+          {/* دکمه تبدیل */}
+          <TouchableOpacity 
+            style={styles.converterButton}
+            onPress={() => setConverterVisible(true)}
+          >
+            <Text style={styles.converterIcon}>🧮</Text>
+            <Text style={styles.converterText}>تبدیل ارز</Text>
+          </TouchableOpacity>
+          
+          {/* دکمه تنظیمات */}
           <TouchableOpacity 
             style={styles.settingsButton}
             onPress={() => setModalVisible(true)}
@@ -308,12 +368,11 @@ export default function App() {
           
           <View style={styles.footer}>
             <Text style={styles.footerText}>بروزرسانی خودکار هر ۵ دقیقه</Text>
-            <Text style={styles.footerTextSmall}>برای رفرش، پایین بکشید</Text>
           </View>
         </ScrollView>
       )}
 
-      {/* مودال */}
+      {/* مودال انتخاب */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -342,7 +401,7 @@ export default function App() {
                   <View key={category}>
                     <Text style={styles.categoryTitle}>
                       {category === 'gold' ? '🏆 طلا و سکه' : 
-                       category === 'crypto' ? '₿ کریپتو' : '💵 ارزها'}
+                       category === 'crypto' ? '₿ کریپتو' : '🌍 ارزها'}
                     </Text>
                     {categoryItems.map(symbol => {
                       const info = getDisplayInfo(symbol);
@@ -355,7 +414,7 @@ export default function App() {
                           ]}
                           onPress={() => toggleItem(symbol)}
                         >
-                          <Text style={styles.modalItemIcon}>{info.icon}</Text>
+                          <Text style={styles.modalItemFlag}>{info.category === 'currency' ? info.flag : ''}</Text>
                           <Text style={styles.modalItemText}>{info.name}</Text>
                           {selectedItems.includes(symbol) && (
                             <Text style={styles.checkmark}>✓</Text>
@@ -377,63 +436,243 @@ export default function App() {
           </View>
         </View>
       </Modal>
+
+      {/* مودال تبدیل */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={converterVisible}
+        onRequestClose={() => setConverterVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>تبدیل ارز 🧮</Text>
+              <TouchableOpacity onPress={() => setConverterVisible(false)}>
+                <Text style={styles.closeButton}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.converterContainer}>
+              <Text style={styles.converterLabel}>از:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyPicker}>
+                {allItems.map(symbol => {
+                  const info = getDisplayInfo(symbol);
+                  return (
+                    <TouchableOpacity
+                      key={symbol}
+                      style={[
+                        styles.currencyOption,
+                        fromCurrency === symbol && styles.currencyOptionSelected
+                      ]}
+                      onPress={() => setFromCurrency(symbol)}
+                    >
+                      <Text style={styles.currencyOptionText}>{info.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+              
+              <Text style={styles.converterLabel}>مقدار:</Text>
+              <TextInput
+                style={styles.input}
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="numeric"
+                placeholder="مثال: 1000"
+                placeholderTextColor="#666"
+              />
+              
+              <Text style={styles.converterLabel}>به:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyPicker}>
+                {allItems.map(symbol => {
+                  const info = getDisplayInfo(symbol);
+                  return (
+                    <TouchableOpacity
+                      key={symbol}
+                      style={[
+                        styles.currencyOption,
+                        toCurrency === symbol && styles.currencyOptionSelected
+                      ]}
+                      onPress={() => setToCurrency(symbol)}
+                    >
+                      <Text style={styles.currencyOptionText}>{info.name}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+              
+              <View style={styles.resultContainer}>
+                <Text style={styles.resultLabel}>نتیجه:</Text>
+                <Text style={styles.resultText}>{result}</Text>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0A0E27' },
+  container: { flex: 1, backgroundColor: '#0A1628' },
   header: {
-    backgroundColor: '#6C5CE7',
-    paddingTop: 15,
-    paddingBottom: 20,
+    backgroundColor: 'linear-gradient(135deg, #00D9A5 0%, #00A67E 100%)',
+    paddingTop: 20,
+    paddingBottom: 25,
     paddingHorizontal: 20,
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
-    shadowColor: '#6C5CE7',
+    shadowColor: '#00D9A5',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  appTitle: { fontSize: 32, fontWeight: 'bold', color: '#FFD700', textShadowColor: 'rgba(0, 0, 0, 0.3)', textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 4 },
-  refreshButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255, 255, 255, 0.2)', justifyContent: 'center', alignItems: 'center' },
-  refreshIcon: { fontSize: 28, color: '#FFD700' },
   dateContainer: { alignItems: 'center' },
-  datePersian: { fontSize: 18, fontWeight: '600', color: '#FFFFFF', marginBottom: 4 },
-  dateGregorian: { fontSize: 13, color: 'rgba(255, 255, 255, 0.7)', marginBottom: 4 },
-  lastUpdateText: { fontSize: 11, color: 'rgba(255, 215, 0, 0.8)' },
+  datePersian: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 6 },
+  dateGregorian: { fontSize: 14, color: 'rgba(255, 255, 255, 0.8)', marginBottom: 8 },
+  lastUpdateText: { fontSize: 11, color: 'rgba(255, 255, 255, 0.7)' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
-  loadingText: { color: '#FFD700', fontSize: 16, marginTop: 15 },
+  loadingText: { color: '#00D9A5', fontSize: 16, marginTop: 15 },
   errorIcon: { fontSize: 60, marginBottom: 15 },
-  error: { color: '#FF6B6B', fontSize: 18, textAlign: 'center', marginBottom: 20 },
-  retryButton: { backgroundColor: '#6C5CE7', paddingHorizontal: 30, paddingVertical: 12, borderRadius: 25 },
-  retryText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+  error: { color: '#FF6B6B', fontSize: 18, textAlign: 'center' },
   list: { flex: 1, padding: 16 },
-  card: { backgroundColor: '#1A1F3A', borderRadius: 20, padding: 20, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.1)', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84, elevation: 5 },
+  card: {
+    backgroundColor: '#1A2742',
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 217, 165, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  icon: { fontSize: 28, marginRight: 12 },
-  name: { fontSize: 18, fontWeight: '600', color: '#FFFFFF', flex: 1 },
-  price: { fontSize: 24, fontWeight: 'bold', color: '#FFD700', textAlign: 'right' },
-  settingsButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#6C5CE7', padding: 16, borderRadius: 15, marginTop: 10, marginBottom: 20 },
+  flag: { fontSize: 28, marginRight: 12 },
+  name: { fontSize: 17, fontWeight: '600', color: '#FFFFFF', flex: 1 },
+  price: { fontSize: 22, fontWeight: 'bold', color: '#00D9A5', textAlign: 'right' },
+  converterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#00D9A5',
+    padding: 16,
+    borderRadius: 15,
+    marginTop: 10,
+    marginBottom: 12,
+    shadowColor: '#00D9A5',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
+    elevation: 6,
+  },
+  converterIcon: { fontSize: 24, marginRight: 10 },
+  converterText: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold' },
+  settingsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#00A67E',
+    padding: 16,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
   settingsIcon: { fontSize: 24, marginRight: 10 },
   settingsText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
-  footer: { alignItems: 'center', paddingVertical: 20 },
-  footerText: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 12, marginBottom: 4 },
-  footerTextSmall: { color: 'rgba(255, 255, 255, 0.3)', fontSize: 10 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.8)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#1A1F3A', borderTopLeftRadius: 30, borderTopRightRadius: 30, maxHeight: '80%', paddingBottom: 20 },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.1)' },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#FFD700' },
+  footer: { alignItems: 'center', paddingVertical: 25 },
+  footerText: { color: 'rgba(255, 255, 255, 0.4)', fontSize: 12 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.85)', justifyContent: 'flex-end' },
+  modalContent: {
+    backgroundColor: '#1A2742',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    maxHeight: '85%',
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 217, 165, 0.2)',
+  },
+  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#00D9A5' },
   closeButton: { fontSize: 30, color: '#FFFFFF', fontWeight: '300' },
   modalList: { padding: 15 },
-  categoryTitle: { fontSize: 16, fontWeight: 'bold', color: '#FFD700', marginTop: 15, marginBottom: 10, marginRight: 10 },
-  modalItem: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: 15, borderRadius: 12, marginBottom: 8 },
-  modalItemSelected: { backgroundColor: 'rgba(108, 92, 231, 0.3)', borderWidth: 2, borderColor: '#6C5CE7' },
-  modalItemIcon: { fontSize: 24, marginRight: 12 },
+  categoryTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#00D9A5',
+    marginTop: 15,
+    marginBottom: 10,
+    marginRight: 10,
+  },
+  modalItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  modalItemSelected: {
+    backgroundColor: 'rgba(0, 217, 165, 0.2)',
+    borderWidth: 2,
+    borderColor: '#00D9A5',
+  },
+  modalItemFlag: { fontSize: 24, marginRight: 12 },
   modalItemText: { flex: 1, fontSize: 16, color: '#FFFFFF' },
-  checkmark: { fontSize: 24, color: '#FFD700', fontWeight: 'bold' },
-  doneButton: { backgroundColor: '#6C5CE7', marginHorizontal: 20, padding: 16, borderRadius: 15, alignItems: 'center' },
+  checkmark: { fontSize: 24, color: '#00D9A5', fontWeight: 'bold' },
+  doneButton: {
+    backgroundColor: '#00D9A5',
+    marginHorizontal: 20,
+    padding: 16,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
   doneButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: 'bold' },
+  converterContainer: { padding: 20 },
+  converterLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#00D9A5',
+    marginTop: 15,
+    marginBottom: 10,
+  },
+  currencyPicker: { marginBottom: 10 },
+  currencyOption: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  currencyOptionSelected: {
+    backgroundColor: '#00D9A5',
+  },
+  currencyOptionText: { color: '#FFFFFF', fontSize: 14 },
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    color: '#FFFFFF',
+    padding: 15,
+    borderRadius: 12,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 217, 165, 0.3)',
+  },
+  resultContainer: {
+    backgroundColor: 'rgba(0, 217, 165, 0.1)',
+    padding: 20,
+    borderRadius: 15,
+    marginTop: 20,
+    borderWidth: 2,
+    borderColor: '#00D9A5',
+  },
+  resultLabel: { fontSize: 14, color: '#00D9A5', marginBottom: 8 },
+  resultText: { fontSize: 24, fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center' },
 });
