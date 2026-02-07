@@ -19,73 +19,75 @@ const CACHE_KEY = '@arzban_cache';
 const LAST_UPDATE_KEY = '@arzban_last_update';
 const SELECTED_ITEMS_KEY = '@arzban_selected';
 
-// لیست کامل - فقط چیزهایی که تو API هست + تومان
+// لیست کامل
 const DISPLAY_MAP = {
-  // تومان (برای تبدیل)
-  'TOMAN': { name: 'تومان', flag: '🇮🇷', category: 'currency' },
+  // تومان (فقط برای تبدیل)
+  'TOMAN': { name: 'تومان', flag: '🇮🇷', category: 'converter_only', unit: 'تومان' },
   
   // ارزها
-  'USDT_IRT': { name: 'تتر (دلار)', flag: '🇺🇸', category: 'currency' },
-  'EUR': { name: 'یورو', flag: '🇪🇺', category: 'currency' },
-  'GBP': { name: 'پوند انگلیس', flag: '🇬🇧', category: 'currency' },
-  'TRY': { name: 'لیر ترکیه', flag: '🇹🇷', category: 'currency' },
-  'AED': { name: 'درهم امارات', flag: '🇦🇪', category: 'currency' },
-  'SAR': { name: 'ریال سعودی', flag: '🇸🇦', category: 'currency' },
-  'QAR': { name: 'ریال قطر', flag: '🇶🇦', category: 'currency' },
-  'OMR': { name: 'ریال عمان', flag: '🇴🇲', category: 'currency' },
-  'KWD': { name: 'دینار کویت', flag: '🇰🇼', category: 'currency' },
-  'IQD': { name: 'دینار عراق', flag: '🇮🇶', category: 'currency' },
-  'SYP': { name: 'لیر سوریه', flag: '🇸🇾', category: 'currency' },
-  'AFN': { name: 'افغانی', flag: '🇦🇫', category: 'currency' },
-  'AMD': { name: 'درام ارمنستان', flag: '🇦🇲', category: 'currency' },
-  'AZN': { name: 'منات آذربایجان', flag: '🇦🇿', category: 'currency' },
-  'GEL': { name: 'لاری گرجستان', flag: '🇬🇪', category: 'currency' },
-  'CNY': { name: 'یوان چین', flag: '🇨🇳', category: 'currency' },
-  'JPY': { name: 'ین ژاپن', flag: '🇯🇵', category: 'currency' },
-  'KRW': { name: 'وون کره', flag: '🇰🇷', category: 'currency' },
-  'INR': { name: 'روپیه هند', flag: '🇮🇳', category: 'currency' },
-  'PKR': { name: 'روپیه پاکستان', flag: '🇵🇰', category: 'currency' },
-  'THB': { name: 'بات تایلند', flag: '🇹🇭', category: 'currency' },
-  'SGD': { name: 'دلار سنگاپور', flag: '🇸🇬', category: 'currency' },
-  'MYR': { name: 'رینگیت مالزی', flag: '🇲🇾', category: 'currency' },
-  'IDR': { name: 'روپیه اندونزی', flag: '🇮🇩', category: 'currency' },
-  'VND': { name: 'دونگ ویتنام', flag: '🇻🇳', category: 'currency' },
-  'CHF': { name: 'فرانک سوئیس', flag: '🇨🇭', category: 'currency' },
-  'NOK': { name: 'کرون نروژ', flag: '🇳🇴', category: 'currency' },
-  'SEK': { name: 'کرون سوئد', flag: '🇸🇪', category: 'currency' },
-  'DKK': { name: 'کرون دانمارک', flag: '🇩🇰', category: 'currency' },
-  'PLN': { name: 'زلوتی لهستان', flag: '🇵🇱', category: 'currency' },
-  'CZK': { name: 'کرون چک', flag: '🇨🇿', category: 'currency' },
-  'HUF': { name: 'فورینت مجارستان', flag: '🇭🇺', category: 'currency' },
-  'RON': { name: 'لئو رومانی', flag: '🇷🇴', category: 'currency' },
-  'RUB': { name: 'روبل روسیه', flag: '🇷🇺', category: 'currency' },
-  'CAD': { name: 'دلار کانادا', flag: '🇨🇦', category: 'currency' },
-  'AUD': { name: 'دلار استرالیا', flag: '🇦🇺', category: 'currency' },
-  'NZD': { name: 'دلار نیوزیلند', flag: '🇳🇿', category: 'currency' },
-  'MXN': { name: 'پزو مکزیک', flag: '🇲🇽', category: 'currency' },
-  'BRL': { name: 'رئال برزیل', flag: '🇧🇷', category: 'currency' },
-  'ARS': { name: 'پزو آرژانتین', flag: '🇦🇷', category: 'currency' },
+  'USDT_IRT': { name: 'تتر', flag: '🇺🇸', category: 'currency', unit: 'تومان' },
+  'INRT': { name: 'دلار', flag: '🇺🇸', category: 'currency', unit: 'تومان' },
+  'EUR': { name: 'یورو', flag: '🇪🇺', category: 'currency', unit: 'تومان' },
+  'GBP': { name: 'پوند انگلیس', flag: '🇬🇧', category: 'currency', unit: 'تومان' },
+  'TRY': { name: 'لیر ترکیه', flag: '🇹🇷', category: 'currency', unit: 'تومان' },
+  'AED': { name: 'درهم امارات', flag: '🇦🇪', category: 'currency', unit: 'تومان' },
+  'SAR': { name: 'ریال سعودی', flag: '🇸🇦', category: 'currency', unit: 'تومان' },
+  'QAR': { name: 'ریال قطر', flag: '🇶🇦', category: 'currency', unit: 'تومان' },
+  'OMR': { name: 'ریال عمان', flag: '🇴🇲', category: 'currency', unit: 'تومان' },
+  'KWD': { name: 'دینار کویت', flag: '🇰🇼', category: 'currency', unit: 'تومان' },
+  'IQD': { name: 'دینار عراق', flag: '🇮🇶', category: 'currency', unit: 'تومان' },
+  'SYP': { name: 'لیر سوریه', flag: '🇸🇾', category: 'currency', unit: 'تومان' },
+  'AFN': { name: 'افغانی', flag: '🇦🇫', category: 'currency', unit: 'تومان' },
+  'AMD': { name: 'درام ارمنستان', flag: '🇦🇲', category: 'currency', unit: 'تومان' },
+  'AZN': { name: 'منات آذربایجان', flag: '🇦🇿', category: 'currency', unit: 'تومان' },
+  'GEL': { name: 'لاری گرجستان', flag: '🇬🇪', category: 'currency', unit: 'تومان' },
+  'CNY': { name: 'یوان چین', flag: '🇨🇳', category: 'currency', unit: 'تومان' },
+  'JPY': { name: 'ین ژاپن', flag: '🇯🇵', category: 'currency', unit: 'تومان' },
+  'KRW': { name: 'وون کره', flag: '🇰🇷', category: 'currency', unit: 'تومان' },
+  'INR': { name: 'روپیه هند', flag: '🇮🇳', category: 'currency', unit: 'تومان' },
+  'PKR': { name: 'روپیه پاکستان', flag: '🇵🇰', category: 'currency', unit: 'تومان' },
+  'THB': { name: 'بات تایلند', flag: '🇹🇭', category: 'currency', unit: 'تومان' },
+  'SGD': { name: 'دلار سنگاپور', flag: '🇸🇬', category: 'currency', unit: 'تومان' },
+  'MYR': { name: 'رینگیت مالزی', flag: '🇲🇾', category: 'currency', unit: 'تومان' },
+  'IDR': { name: 'روپیه اندونزی', flag: '🇮🇩', category: 'currency', unit: 'تومان' },
+  'VND': { name: 'دونگ ویتنام', flag: '🇻🇳', category: 'currency', unit: 'تومان' },
+  'CHF': { name: 'فرانک سوئیس', flag: '🇨🇭', category: 'currency', unit: 'تومان' },
+  'NOK': { name: 'کرون نروژ', flag: '🇳🇴', category: 'currency', unit: 'تومان' },
+  'SEK': { name: 'کرون سوئد', flag: '🇸🇪', category: 'currency', unit: 'تومان' },
+  'DKK': { name: 'کرون دانمارک', flag: '🇩🇰', category: 'currency', unit: 'تومان' },
+  'PLN': { name: 'زلوتی لهستان', flag: '🇵🇱', category: 'currency', unit: 'تومان' },
+  'CZK': { name: 'کرون چک', flag: '🇨🇿', category: 'currency', unit: 'تومان' },
+  'HUF': { name: 'فورینت مجارستان', flag: '🇭🇺', category: 'currency', unit: 'تومان' },
+  'RON': { name: 'لئو رومانی', flag: '🇷🇴', category: 'currency', unit: 'تومان' },
+  'RUB': { name: 'روبل روسیه', flag: '🇷🇺', category: 'currency', unit: 'تومان' },
+  'CAD': { name: 'دلار کانادا', flag: '🇨🇦', category: 'currency', unit: 'تومان' },
+  'AUD': { name: 'دلار استرالیا', flag: '🇦🇺', category: 'currency', unit: 'تومان' },
+  'NZD': { name: 'دلار نیوزیلند', flag: '🇳🇿', category: 'currency', unit: 'تومان' },
+  'MXN': { name: 'پزو مکزیک', flag: '🇲🇽', category: 'currency', unit: 'تومان' },
+  'BRL': { name: 'رئال برزیل', flag: '🇧🇷', category: 'currency', unit: 'تومان' },
+  'ARS': { name: 'پزو آرژانتین', flag: '🇦🇷', category: 'currency', unit: 'تومان' },
   
   // طلا و سکه
-  'IR_GOLD_18K': { name: 'طلا ۱۸ عیار', flag: '', category: 'gold' },
-  'IR_GOLD_24K': { name: 'طلا ۲۴ عیار', flag: '', category: 'gold' },
-  'IR_GOLD_MELTED': { name: 'طلا آب شده', flag: '', category: 'gold' },
-  'MAUSD': { name: 'انس طلا', flag: '', category: 'gold' },
-  'IR_COIN_EMAMI': { name: 'سکه امامی', flag: '', category: 'gold' },
-  'IR_COIN_BAHAR': { name: 'سکه بهار', flag: '', category: 'gold' },
-  'IR_COIN_HALF': { name: 'نیم سکه', flag: '', category: 'gold' },
-  'IR_COIN_QUARTER': { name: 'ربع سکه', flag: '', category: 'gold' },
+  'IR_GOLD_18K': { name: 'طلا ۱۸ عیار', flag: '', category: 'gold', unit: 'تومان' },
+  'IR_GOLD_24K': { name: 'طلا ۲۴ عیار', flag: '', category: 'gold', unit: 'تومان' },
+  'IR_GOLD_MELTED': { name: 'طلا آب شده', flag: '', category: 'gold', unit: 'تومان' },
+  'MAUSD': { name: 'انس طلا', flag: '', category: 'gold', unit: 'تومان' },
+  'IR_COIN_EMAMI': { name: 'سکه امامی', flag: '', category: 'gold', unit: 'تومان' },
+  'IR_COIN_BAHAR': { name: 'سکه بهار', flag: '', category: 'gold', unit: 'تومان' },
+  'IR_COIN_HALF': { name: 'نیم سکه', flag: '', category: 'gold', unit: 'تومان' },
+  'IR_COIN_QUARTER': { name: 'ربع سکه', flag: '', category: 'gold', unit: 'تومان' },
   
-  // کریپتو - فقط BTC و ETH
-  'BTC': { name: 'بیت‌کوین', flag: '', category: 'crypto' },
-  'ETH': { name: 'اتریوم', flag: '', category: 'crypto' },
+  // کریپتو - قیمت به دلار
+  'BTC': { name: 'بیت‌کوین', flag: '', category: 'crypto', unit: 'دلار' },
+  'ETH': { name: 'اتریوم', flag: '', category: 'crypto', unit: 'دلار' },
 };
 
 const DEFAULT_SELECTED = ['USDT_IRT', 'EUR', 'IR_GOLD_18K', 'IR_COIN_EMAMI', 'BTC'];
 
 export default function App() {
-  const [rates, setRates] = useState({ TOMAN: 1 }); // تومان = 1
-  const [allItems, setAllItems] = useState(['TOMAN']); // شامل تومان
+  const [rates, setRates] = useState({ TOMAN: 1 });
+  const [allItems, setAllItems] = useState([]);
+  const [converterItems, setConverterItems] = useState(['TOMAN']); // شامل تومان
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -99,7 +101,6 @@ export default function App() {
   const [amount, setAmount] = useState('1000');
   const [result, setResult] = useState('');
 
-  // تبدیل درست به شمسی
   const convertToJalali = (gDate) => {
     let gy = gDate.getFullYear();
     let gm = gDate.getMonth() + 1;
@@ -203,9 +204,9 @@ export default function App() {
       const data = await response.json();
       
       const newRates = { TOMAN: 1 };
-      const items = ['TOMAN'];
+      const items = [];
+      const convItems = ['TOMAN'];
       
-      // فقط چیزهایی که تو DISPLAY_MAP هست رو اضافه کن
       const allowedSymbols = Object.keys(DISPLAY_MAP).filter(k => k !== 'TOMAN');
       
       if (data.gold && Array.isArray(data.gold)) {
@@ -213,6 +214,7 @@ export default function App() {
           if (item.symbol && item.price && allowedSymbols.includes(item.symbol)) {
             newRates[item.symbol] = parseInt(item.price);
             items.push(item.symbol);
+            convItems.push(item.symbol);
           }
         });
       }
@@ -222,6 +224,7 @@ export default function App() {
           if (item.symbol && item.price && allowedSymbols.includes(item.symbol)) {
             newRates[item.symbol] = parseInt(item.price);
             items.push(item.symbol);
+            convItems.push(item.symbol);
           }
         });
       }
@@ -231,15 +234,16 @@ export default function App() {
           if (item.symbol && item.price && allowedSymbols.includes(item.symbol)) {
             newRates[item.symbol] = parseInt(item.price);
             items.push(item.symbol);
+            convItems.push(item.symbol);
           }
         });
       }
       
       setRates(newRates);
-      setAllItems(items);
+      setAllItems(items); // بدون تومان
+      setConverterItems(convItems); // با تومان
       updateDates();
       
-      // ذخیره زمان واقعی آپدیت
       const now = new Date();
       const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
       setLastUpdate(timeStr);
@@ -281,7 +285,7 @@ export default function App() {
   };
 
   const getDisplayInfo = (symbol) => {
-    return DISPLAY_MAP[symbol] || { name: symbol, flag: '🌍', category: 'other' };
+    return DISPLAY_MAP[symbol] || { name: symbol, flag: '🌍', category: 'other', unit: 'تومان' };
   };
 
   const calculateConversion = () => {
@@ -295,15 +299,15 @@ export default function App() {
       const toInfo = getDisplayInfo(toCurrency);
       
       if (toCurrency === 'TOMAN') {
-        setResult(`${Math.round(converted).toLocaleString('fa-IR')} تومان`);
+        setResult(`${converted.toLocaleString('fa-IR', { maximumFractionDigits: 2, minimumFractionDigits: 0 })} تومان`);
       } else if (toCurrency.includes('GOLD')) {
-        setResult(`${converted.toFixed(2)} گرم ${toInfo.name}`);
+        setResult(`${converted.toLocaleString('fa-IR', { maximumFractionDigits: 3, minimumFractionDigits: 0 })} گرم ${toInfo.name}`);
       } else if (toCurrency.includes('COIN')) {
-        setResult(`${converted.toFixed(4)} ${toInfo.name}`);
+        setResult(`${converted.toLocaleString('fa-IR', { maximumFractionDigits: 4, minimumFractionDigits: 0 })} ${toInfo.name}`);
       } else if (toCurrency === 'BTC' || toCurrency === 'ETH') {
-        setResult(`${converted.toFixed(8)} ${toInfo.name}`);
+        setResult(`${converted.toLocaleString('fa-IR', { maximumFractionDigits: 8, minimumFractionDigits: 0 })} ${toInfo.name}`);
       } else {
-        setResult(`${Math.round(converted).toLocaleString('fa-IR')} ${toInfo.name}`);
+        setResult(`${converted.toLocaleString('fa-IR', { maximumFractionDigits: 2, minimumFractionDigits: 0 })} ${toInfo.name}`);
       }
     } else {
       setResult('مقدار را وارد کنید');
@@ -332,7 +336,7 @@ export default function App() {
         <ScrollView style={styles.converterScreen}>
           <Text style={styles.converterLabel}>از:</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyPicker}>
-            {allItems.map(symbol => {
+            {converterItems.map(symbol => {
               const info = getDisplayInfo(symbol);
               return (
                 <TouchableOpacity
@@ -363,7 +367,7 @@ export default function App() {
           
           <Text style={styles.converterLabel}>به:</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.currencyPicker}>
-            {allItems.map(symbol => {
+            {converterItems.map(symbol => {
               const info = getDisplayInfo(symbol);
               return (
                 <TouchableOpacity
@@ -395,7 +399,6 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       
-      {/* هدر خیلی بلند */}
       <View style={styles.header}>
         <View style={styles.dateContainer}>
           <Text style={styles.datePersian}>{persianDate}</Text>
@@ -404,7 +407,6 @@ export default function App() {
         </View>
       </View>
 
-      {/* دکمه ماشین‌حساب */}
       <TouchableOpacity 
         style={styles.calcButton}
         onPress={() => setConverterVisible(true)}
@@ -435,7 +437,7 @@ export default function App() {
                   <Text style={styles.name}>{info.name}</Text>
                 </View>
                 <Text style={styles.price}>
-                  {value ? `${value.toLocaleString('fa-IR')} تومان` : 'بارگذاری...'}
+                  {value ? `${value.toLocaleString('fa-IR')} ${info.unit}` : 'بارگذاری...'}
                 </Text>
               </View>
             );
@@ -455,7 +457,6 @@ export default function App() {
         </ScrollView>
       )}
 
-      {/* مودال انتخاب */}
       <Modal
         animationType="slide"
         transparent={true}
