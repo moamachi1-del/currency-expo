@@ -237,6 +237,12 @@ export default function App() {
     <SafeAreaView style={s.container}>
       <StatusBar style={currentTheme === 'gold' || currentTheme === 'neon' ? "light" : "dark"} />
       <View style={s.header}>
+        <TouchableOpacity style={s.themeTopBtn} onPress={() => setThemeModal(true)}>
+          <Text style={s.topBtnIcon}>🎨</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.settingsTopBtn} onPress={() => setModalVisible(true)}>
+          <Text style={s.topBtnIcon}>⚙️</Text>
+        </TouchableOpacity>
         <View style={s.dateContainer}>
           <Text style={s.datePersian}>{persianDate}</Text>
           <Text style={s.dateGregorian}>{gregorianDate}</Text>
@@ -271,14 +277,6 @@ export default function App() {
               </View>
             );
           })}
-          <TouchableOpacity style={s.settingsBtn} onPress={() => setModalVisible(true)}>
-            <Text style={s.settingsIcon}>⚙️</Text>
-            <Text style={s.settingsText}>تنظیم لیست</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.themeBtn} onPress={() => setThemeModal(true)}>
-            <Text style={s.themeIcon}>🎨</Text>
-            <Text style={s.themeText}>تغییر تم</Text>
-          </TouchableOpacity>
           <View style={s.footer}><Text style={s.footerText}>بروزرسانی خودکار هر ۵ دقیقه</Text></View>
         </ScrollView>
       )}
@@ -346,6 +344,9 @@ function createStyles(t) {
   return StyleSheet.create({
     container: {flex:1, backgroundColor:t.bg},
     header: {backgroundColor:t.headerBg, paddingTop:40, paddingBottom:60, paddingHorizontal:20, borderBottomLeftRadius:35, borderBottomRightRadius:35, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.15, shadowRadius:6, elevation:5},
+    themeTopBtn: {position:'absolute', top:50, right:20, width:45, height:45, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.3, shadowRadius:4, elevation:5, zIndex:20},
+    settingsTopBtn: {position:'absolute', top:50, left:20, width:45, height:45, backgroundColor:t.secondary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.secondary, shadowOffset:{width:0,height:2}, shadowOpacity:0.3, shadowRadius:4, elevation:5, zIndex:20},
+    topBtnIcon: {fontSize:22},
     dateContainer: {alignItems:'center', marginTop:15},
     datePersian: {fontSize:30, fontWeight:'bold', color:t.textPrimary, marginBottom:10},
     dateGregorian: {fontSize:16, color:t.textSecondary, marginBottom:12},
@@ -362,12 +363,6 @@ function createStyles(t) {
     flag: {fontSize:28, marginRight:12},
     name: {fontSize:17, fontWeight:'600', color:t.textPrimary, flex:1},
     price: {fontSize:22, fontWeight:'bold', color:t.primary, textAlign:'right'},
-    settingsBtn: {flexDirection:'row', alignItems:'center', justifyContent:'center', backgroundColor:t.secondary, padding:16, borderRadius:15, marginTop:10, marginBottom:12, shadowColor:t.secondary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:5},
-    settingsIcon: {fontSize:24, marginRight:10},
-    settingsText: {color:'#FFF', fontSize:16, fontWeight:'bold'},
-    themeBtn: {flexDirection:'row', alignItems:'center', justifyContent:'center', backgroundColor:t.primary, padding:16, borderRadius:15, marginBottom:20, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:5},
-    themeIcon: {fontSize:24, marginRight:10},
-    themeText: {color:'#FFF', fontSize:16, fontWeight:'bold'},
     footer: {alignItems:'center', paddingVertical:25},
     footerText: {color:'#95A5A6', fontSize:12},
     modalOverlay: {flex:1, backgroundColor:'rgba(0,0,0,0.6)', justifyContent:'flex-end'},
@@ -377,7 +372,7 @@ function createStyles(t) {
     closeBtn: {fontSize:30, color:'#95A5A6', fontWeight:'300'},
     modalList: {padding:15},
     catTitle: {fontSize:16, fontWeight:'bold', color:t.primary, marginTop:15, marginBottom:10, marginRight:10},
-    modalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:15, borderRadius:12, marginBottom:8},
+    modalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:12, marginBottom:10},
     modalItemSel: {backgroundColor:t.cardBorder, borderWidth:2, borderColor:t.primary},
     modalItemFlag: {fontSize:24, marginRight:12},
     modalItemText: {flex:1, fontSize:16, color:t.textPrimary},
