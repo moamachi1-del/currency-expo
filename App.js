@@ -233,10 +233,7 @@ export default function App() {
             const res = convert(sym);
             return (
               <View key={sym} style={s.resCard}>
-                <View style={s.resHeader}>
-                  {info.cat === 'currency' && <Text style={s.resFlag}>{info.flag}</Text>}
-                  <Text style={s.resName}>{language === 'fa' ? info.name : info.nameEn}</Text>
-                </View>
+                <Text style={s.resName}>{language === 'fa' ? info.name : info.nameEn}</Text>
                 <Text style={s.resValue}>{res}</Text>
               </View>
             );
@@ -307,7 +304,7 @@ export default function App() {
                   <Text style={s.name}>{language === 'fa' ? info.name : info.nameEn}</Text>
                 </View>
                 <Text style={s.price}>
-                  {val ? `${formatNumber(val)} ${language === 'fa' ? info.unit : info.unitEn}` : '...'}
+                  {val ? formatNumber(val) : '...'}
                 </Text>
               </View>
             );
@@ -480,7 +477,7 @@ function createStyles(t, scale, lang) {
     modalTitle: {fontSize:22*scale, fontWeight:'bold', color:t.primary},
     closeBtn: {fontSize:30, color:'#95A5A6', fontWeight:'300'},
     backIcon: {fontSize:28, color:t.primary, fontWeight:'bold'},
-    modalList: {padding:15, paddingBottom:300},
+    modalList: {padding:15, paddingBottom:400},
     catTitle: {fontSize:16*scale, fontWeight:'bold', color:t.primary, marginTop:15, marginBottom:10, marginRight:10},
     modalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:12, marginBottom:10},
     modalItemSel: {backgroundColor:t.cardBorder, borderWidth:2, borderColor:t.primary},
@@ -499,10 +496,8 @@ function createStyles(t, scale, lang) {
     input: {backgroundColor:t.cardBg, color:t.textPrimary, padding:18, borderRadius:15, fontSize:17*scale, borderWidth:2, borderColor:t.cardBorder, fontWeight:'600', marginBottom:25},
     resultsTitle: {fontSize:18*scale, fontWeight:'bold', color:t.textPrimary, marginBottom:15},
     resCard: {backgroundColor:t.cardBg, borderRadius:16, padding:18, marginBottom:12, borderWidth:2, borderColor:t.cardBorder, flexDirection:'row', justifyContent:'space-between', alignItems:'center'},
-    resHeader: {flexDirection:'row', alignItems:'center', flex:1},
-    resFlag: {fontSize:24, marginRight:12},
-    resName: {fontSize:16*scale, color:t.textPrimary, fontWeight:'600'},
-    resValue: {fontSize:18*scale, fontWeight:'bold', color:t.primary},
+    resName: {fontSize:16*scale, color:t.textPrimary, fontWeight:'600', textAlign:'right', flex:1},
+    resValue: {fontSize:18*scale, fontWeight:'bold', color:t.primary, textAlign:'left'},
     currModalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:15, marginBottom:10, borderWidth:1, borderColor:t.cardBorder},
     currModalFlag: {fontSize:32, marginRight:15},
     currModalText: {fontSize:18*scale, color:t.textPrimary, fontWeight:'600'},
@@ -511,9 +506,9 @@ function createStyles(t, scale, lang) {
     choiceList: {padding:20},
     choiceItem: {flexDirection:'row', justifyContent:'space-between', alignItems:'center', backgroundColor:t.headerBg, padding:20, borderRadius:15, marginBottom:12, borderWidth:2, borderColor:t.cardBorder},
     choiceItemSel: {backgroundColor:t.cardBorder, borderColor:t.primary},
-    choiceText: {fontSize:18*scale, color:t.textPrimary, fontWeight:'600'},
+    choiceText: {fontSize:18*scale, color:t.textPrimary, fontWeight:'600', textAlign:isRTL?'right':'left', flex:1},
     themeItem: {flexDirection:'row', alignItems:'center', justifyContent:'space-between', padding:18, borderRadius:15, marginBottom:10, borderWidth:2},
-    themeItemText: {fontSize:17*scale, fontWeight:'600'},
+    themeItemText: {fontSize:17*scale, fontWeight:'600', textAlign:isRTL?'right':'left', flex:1},
     backBtn: {padding:5},
   });
 }
