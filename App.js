@@ -131,7 +131,7 @@ export default function App() {
       setConverterItems(convItems);
       updateDates();
       const now = new Date();
-      const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      const time = `\( {now.getHours().toString().padStart(2,'0')}: \){now.getMinutes().toString().padStart(2,'0')}`;
       setLastUpdate(time);
       await AsyncStorage.multiSet([['@cache', JSON.stringify(newRates)], ['@update', time]]);
     } catch (err) {
@@ -165,7 +165,7 @@ export default function App() {
 
   const formatNumber = (num, decimals = 0) => {
     if (decimals > 0) {
-      return num.toLocaleString('en-US', {maximumFractionDigits: decimals, minimumFractionDigits: 0});
+      return num.toLocaleString('en-US', {maximumFractionDigits: decimals, minimumFractionDigits: decimals});
     }
     return num.toLocaleString('en-US', {maximumFractionDigits: 0});
   };
@@ -176,10 +176,11 @@ export default function App() {
     const amt = parseFloat(amount) || 0;
     if (amt > 0) {
       const result = (amt * fromRate) / toRate;
-      if (target === 'TOMAN') return formatNumber(result, 2);
+      if (target === 'TOMAN') return formatNumber(result, 0);
       if (target.includes('GOLD')) return formatNumber(result, 3) + t(' گرم', ' g');
       if (target.includes('COIN')) return formatNumber(result, 4);
-      if (target === 'BTC' || target === 'ETH') return formatNumber(result, 8);
+      if (target === 'BTC') return formatNumber(result, 8);
+      if (target === 'ETH') return formatNumber(result, 6);
       return formatNumber(result, 2);
     }
     return '---';
@@ -220,7 +221,11 @@ export default function App() {
           <Text style={s.convTitle}>{t('مبدل ارز', 'Converter')}</Text>
           <View style={{width:40}} />
         </View>
-        <ScrollView style={s.convScreen}>
+        <ScrollView 
+          style={s.convScreen}
+          contentContainerStyle={{ paddingBottom: 400, flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
           <TouchableOpacity style={s.currBox} onPress={() => setCurrencyModal(true)}>
             <Text style={s.currFlag}>{fromInfo.flag}</Text>
             <Text style={s.currText}>{language === 'fa' ? fromInfo.name : fromInfo.nameEn}</Text>
@@ -233,8 +238,10 @@ export default function App() {
             const res = convert(sym);
             return (
               <View key={sym} style={s.resCard}>
-                <Text style={s.resName}>{language === 'fa' ? info.name : info.nameEn}</Text>
-                <Text style={s.resValue}>{res}</Text>
+                <Text style={[s.resValue, { textAlign: 'left' }]}>{res}</Text>
+                <Text style={[s.resName, { textAlign: 'right', flex: 1 }]} numberOfLines={1}>
+                  {language === 'fa' ? info.name : info.nameEn}
+                </Text>
               </View>
             );
           })}
@@ -313,7 +320,6 @@ export default function App() {
         </ScrollView>
       )}
 
-      {/* Settings Modal */}
       <Modal animationType="slide" transparent visible={settingsVisible} onRequestClose={() => setSettingsVisible(false)}>
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
@@ -339,7 +345,6 @@ export default function App() {
         </View>
       </Modal>
 
-      {/* Sub-menus */}
       <Modal animationType="slide" transparent visible={settingsSubMenu === 'currencies'} onRequestClose={() => setSettingsSubMenu(null)}>
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
@@ -477,7 +482,7 @@ function createStyles(t, scale, lang) {
     modalTitle: {fontSize:22*scale, fontWeight:'bold', color:t.primary},
     closeBtn: {fontSize:30, color:'#95A5A6', fontWeight:'300'},
     backIcon: {fontSize:28, color:t.primary, fontWeight:'bold'},
-    modalList: {padding:15, paddingBottom:400},
+    modalList: {padding:15, paddingBottom:600},
     catTitle: {fontSize:16*scale, fontWeight:'bold', color:t.primary, marginTop:15, marginBottom:10, marginRight:10},
     modalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:12, marginBottom:10},
     modalItemSel: {backgroundColor:t.cardBorder, borderWidth:2, borderColor:t.primary},
@@ -495,9 +500,30 @@ function createStyles(t, scale, lang) {
     label: {fontSize:17*scale, fontWeight:'bold', color:t.primary, marginBottom:12},
     input: {backgroundColor:t.cardBg, color:t.textPrimary, padding:18, borderRadius:15, fontSize:17*scale, borderWidth:2, borderColor:t.cardBorder, fontWeight:'600', marginBottom:25},
     resultsTitle: {fontSize:18*scale, fontWeight:'bold', color:t.textPrimary, marginBottom:15},
-    resCard: {backgroundColor:t.cardBg, borderRadius:16, padding:18, marginBottom:12, borderWidth:2, borderColor:t.cardBorder, flexDirection:'row', justifyContent:'space-between', alignItems:'center'},
-    resName: {fontSize:16*scale, color:t.textPrimary, fontWeight:'600', textAlign:'right', flex:1},
-    resValue: {fontSize:18*scale, fontWeight:'bold', color:t.primary, textAlign:'left'},
+    resCard: {
+      backgroundColor:t.cardBg,
+      borderRadius:16,
+      padding:18,
+      marginBottom:12,
+      borderWidth:2,
+      borderColor:t.cardBorder,
+      flexDirection: 'row-reverse',
+      justifyContent:'space-between',
+      alignItems:'center',
+    },
+    resName: {
+      fontSize:16*scale,
+      color:t.textPrimary,
+      fontWeight:'600',
+      flex:1,
+    },
+    resValue: {
+      fontSize:18*scale,
+      fontWeight:'bold',
+      color:t.primary,
+      minWidth: 120,
+      textAlign: 'left',
+    },
     currModalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:15, marginBottom:10, borderWidth:1, borderColor:t.cardBorder},
     currModalFlag: {fontSize:32, marginRight:15},
     currModalText: {fontSize:18*scale, color:t.textPrimary, fontWeight:'600'},
