@@ -10,13 +10,13 @@ const API_KEY = 'B2JhTivIrHZHFFJDdKtE1vxP1Mp3LBuH';
 const API_URL = `https://BrsApi.ir/Api/Market/Gold_Currency.php?key=${API_KEY}`;
 
 const THEMES = {
-  green: { name: 'سبز فیروزه‌ای', nameEn: 'Turquoise Green', bg: '#F0F9F6', headerBg: '#E8F8F5', primary: '#00CBA9', secondary: '#4ECDC4', cardBg: '#FFFFFF', cardBorder: '#D4F1E8', textPrimary: '#1A5F4F', textSecondary: '#5B7A6F' },
-  blue: { name: 'آبی اقیانوسی', nameEn: 'Ocean Blue', bg: '#F0F8FF', headerBg: '#E3F2FD', primary: '#2196F3', secondary: '#03A9F4', cardBg: '#FFFFFF', cardBorder: '#BBDEFB', textPrimary: '#0D47A1', textSecondary: '#1976D2' },
-  purple: { name: 'بنفش شاهانه', nameEn: 'Royal Purple', bg: '#F8F4FF', headerBg: '#F3E5F5', primary: '#9C27B0', secondary: '#BA68C8', cardBg: '#FFFFFF', cardBorder: '#E1BEE7', textPrimary: '#4A148C', textSecondary: '#7B1FA2' },
-  orange: { name: 'نارنجی غروب', nameEn: 'Sunset Orange', bg: '#FFF8F0', headerBg: '#FFF3E0', primary: '#FF9800', secondary: '#FFB74D', cardBg: '#FFFFFF', cardBorder: '#FFE0B2', textPrimary: '#E65100', textSecondary: '#F57C00' },
-  pink: { name: 'صورتی-بنفش', nameEn: 'Pink-Purple', bg: '#FFF0F8', headerBg: '#FCE4EC', primary: '#E91E63', secondary: '#F06292', cardBg: '#FFFFFF', cardBorder: '#F8BBD0', textPrimary: '#880E4F', textSecondary: '#C2185B' },
-  gold: { name: 'طلایی-مشکی', nameEn: 'Gold-Black', bg: '#1A1A1A', headerBg: '#2C2C2C', primary: '#FFD700', secondary: '#FFA500', cardBg: '#2C2C2C', cardBorder: '#444444', textPrimary: '#FFD700', textSecondary: '#FFA500' },
-  neon: { name: 'سبز-آبی نئون', nameEn: 'Neon Green-Blue', bg: '#0A1628', headerBg: '#1A2742', primary: '#00FFC6', secondary: '#00D9FF', cardBg: '#1A2742', cardBorder: '#2C3E50', textPrimary: '#00FFC6', textSecondary: '#00D9FF' },
+  green: { name: 'سبز', nameEn: 'Green', bg: '#F0F9F6', headerBg: '#E8F8F5', primary: '#00CBA9', secondary: '#4ECDC4', cardBg: '#FFFFFF', cardBorder: '#D4F1E8', textPrimary: '#1A5F4F', textSecondary: '#5B7A6F' },
+  blue: { name: 'آبی', nameEn: 'Blue', bg: '#F0F8FF', headerBg: '#E3F2FD', primary: '#2196F3', secondary: '#03A9F4', cardBg: '#FFFFFF', cardBorder: '#BBDEFB', textPrimary: '#0D47A1', textSecondary: '#1976D2' },
+  purple: { name: 'بنفش', nameEn: 'Purple', bg: '#F8F4FF', headerBg: '#F3E5F5', primary: '#9C27B0', secondary: '#BA68C8', cardBg: '#FFFFFF', cardBorder: '#E1BEE7', textPrimary: '#4A148C', textSecondary: '#7B1FA2' },
+  orange: { name: 'نارنجی', nameEn: 'Orange', bg: '#FFF8F0', headerBg: '#FFF3E0', primary: '#FF9800', secondary: '#FFB74D', cardBg: '#FFFFFF', cardBorder: '#FFE0B2', textPrimary: '#E65100', textSecondary: '#F57C00' },
+  pink: { name: 'صورتی', nameEn: 'Pink', bg: '#FFF0F8', headerBg: '#FCE4EC', primary: '#E91E63', secondary: '#F06292', cardBg: '#FFFFFF', cardBorder: '#F8BBD0', textPrimary: '#880E4F', textSecondary: '#C2185B' },
+  gold: { name: 'طلایی', nameEn: 'Gold', bg: '#1A1A1A', headerBg: '#2C2C2C', primary: '#FFD700', secondary: '#FFA500', cardBg: '#2C2C2C', cardBorder: '#444444', textPrimary: '#FFD700', textSecondary: '#FFA500' },
+  neon: { name: 'نئون', nameEn: 'Neon', bg: '#0A1628', headerBg: '#1A2742', primary: '#00FFC6', secondary: '#00D9FF', cardBg: '#1A2742', cardBorder: '#2C3E50', textPrimary: '#00FFC6', textSecondary: '#00D9FF' },
 };
 
 const FONT_SIZES = {
@@ -153,7 +153,7 @@ export default function App() {
         updateDates();
       } catch {}
       setLoading(false);
-      await fetchRates();
+      fetchRates();
     })();
     const interval = setInterval(fetchRates, 5*60*1000);
     return () => clearInterval(interval);
@@ -283,7 +283,7 @@ export default function App() {
         </View>
       </View>
       <TouchableOpacity style={s.calcBtn} onPress={() => setConverterVisible(true)}>
-        <Text style={s.calcIcon}>⊞</Text>
+        <Text style={s.calcIcon}>🧮</Text>
       </TouchableOpacity>
       {loading ? (
         <View style={s.center}>
@@ -327,19 +327,15 @@ export default function App() {
             <ScrollView style={s.modalList}>
               <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('currencies')}>
                 <Text style={s.settingsMenuText}>{t('لیست ارزها', 'Currency List')}</Text>
-                <Text style={s.settingsMenuArrow}>→</Text>
               </TouchableOpacity>
               <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('fontsize')}>
                 <Text style={s.settingsMenuText}>{t('اندازه قلم', 'Font Size')}</Text>
-                <Text style={s.settingsMenuArrow}>→</Text>
               </TouchableOpacity>
               <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('language')}>
                 <Text style={s.settingsMenuText}>{t('انتخاب زبان', 'Language')}</Text>
-                <Text style={s.settingsMenuArrow}>→</Text>
               </TouchableOpacity>
               <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('theme')}>
                 <Text style={s.settingsMenuText}>{t('رنگ‌بندی', 'Colors')}</Text>
-                <Text style={s.settingsMenuArrow}>→</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -361,7 +357,7 @@ export default function App() {
                 if (!items.length) return null;
                 return (
                   <View key={cat}>
-                    <Text style={s.catTitle}>{cat === 'gold' ? t('🏆 طلا و سکه', '🏆 Gold & Coins') : cat === 'crypto' ? t('₿ کریپتو', '₿ Crypto') : t('🌍 ارزها', '🌍 Currencies')}</Text>
+                    <Text style={s.catTitle}>{cat === 'gold' ? t('طلا و سکه', 'Gold & Coins') : cat === 'crypto' ? t('کریپتو', 'Crypto') : t('ارزها', 'Currencies')}</Text>
                     {items.map(sym => {
                       const info = getInfo(sym);
                       const sel = selectedItems.includes(sym);
@@ -484,7 +480,7 @@ function createStyles(t, scale, lang) {
     modalTitle: {fontSize:22*scale, fontWeight:'bold', color:t.primary},
     closeBtn: {fontSize:30, color:'#95A5A6', fontWeight:'300'},
     backIcon: {fontSize:28, color:t.primary, fontWeight:'bold'},
-    modalList: {padding:15, paddingBottom:100},
+    modalList: {padding:15, paddingBottom:180},
     catTitle: {fontSize:16*scale, fontWeight:'bold', color:t.primary, marginTop:15, marginBottom:10, marginRight:10},
     modalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:12, marginBottom:10},
     modalItemSel: {backgroundColor:t.cardBorder, borderWidth:2, borderColor:t.primary},
@@ -510,9 +506,8 @@ function createStyles(t, scale, lang) {
     currModalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:15, marginBottom:10, borderWidth:1, borderColor:t.cardBorder},
     currModalFlag: {fontSize:32, marginRight:15},
     currModalText: {fontSize:18*scale, color:t.textPrimary, fontWeight:'600'},
-    settingsMenuItem: {flexDirection:'row', justifyContent:'space-between', alignItems:'center', backgroundColor:t.headerBg, padding:20, borderRadius:15, marginBottom:12, borderWidth:1, borderColor:t.cardBorder},
-    settingsMenuText: {fontSize:17*scale, color:t.textPrimary, fontWeight:'600'},
-    settingsMenuArrow: {fontSize:20, color:t.primary, fontWeight:'bold'},
+    settingsMenuItem: {flexDirection:'row', justifyContent:isRTL?'flex-end':'flex-start', alignItems:'center', backgroundColor:t.headerBg, padding:20, borderRadius:15, marginBottom:12, borderWidth:1, borderColor:t.cardBorder},
+    settingsMenuText: {fontSize:17*scale, color:t.textPrimary, fontWeight:'600', textAlign:isRTL?'right':'left'},
     choiceList: {padding:20},
     choiceItem: {flexDirection:'row', justifyContent:'space-between', alignItems:'center', backgroundColor:t.headerBg, padding:20, borderRadius:15, marginBottom:12, borderWidth:2, borderColor:t.cardBorder},
     choiceItemSel: {backgroundColor:t.cardBorder, borderColor:t.primary},
