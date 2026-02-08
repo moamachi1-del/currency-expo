@@ -194,7 +194,7 @@ export default function App() {
           <Text style={s.label}>مقدار:</Text>
           <TextInput style={s.input} value={amount} onChangeText={setAmount} keyboardType="numeric" placeholder="مثال: 1000000" placeholderTextColor="#999" />
           <Text style={s.resultsTitle}>نتایج:</Text>
-          {converterItems.filter(x => x !== fromCurrency).map(sym => {
+          {converterItems.filter(x => x !== fromCurrency && (getInfo(x).cat === 'currency' || getInfo(x).cat === 'crypto' || x === 'TOMAN')).map(sym => {
             const info = getInfo(sym);
             const res = convert(sym);
             return (
@@ -216,7 +216,7 @@ export default function App() {
                 <TouchableOpacity onPress={() => setCurrencyModal(false)}><Text style={s.closeBtn}>✕</Text></TouchableOpacity>
               </View>
               <ScrollView style={s.modalList}>
-                {converterItems.map(sym => {
+                {converterItems.filter(x => getInfo(x).cat === 'currency' || getInfo(x).cat === 'crypto' || x === 'TOMAN').map(sym => {
                   const info = getInfo(sym);
                   return (
                     <TouchableOpacity key={sym} style={s.currModalItem} onPress={() => { setFromCurrency(sym); setCurrencyModal(false); }}>
@@ -238,10 +238,14 @@ export default function App() {
       <StatusBar style={currentTheme === 'gold' || currentTheme === 'neon' ? "light" : "dark"} />
       <View style={s.header}>
         <TouchableOpacity style={s.themeTopBtn} onPress={() => setThemeModal(true)}>
-          <Text style={s.topBtnIcon}>🎨</Text>
+          <View style={s.iconCircle}>
+            <Text style={s.topBtnIcon}>●</Text>
+          </View>
         </TouchableOpacity>
         <TouchableOpacity style={s.settingsTopBtn} onPress={() => setModalVisible(true)}>
-          <Text style={s.topBtnIcon}>⚙️</Text>
+          <View style={s.iconCircle}>
+            <Text style={s.topBtnIcon}>≡</Text>
+          </View>
         </TouchableOpacity>
         <View style={s.dateContainer}>
           <Text style={s.datePersian}>{persianDate}</Text>
@@ -250,7 +254,7 @@ export default function App() {
         </View>
       </View>
       <TouchableOpacity style={s.calcBtn} onPress={() => setConverterVisible(true)}>
-        <Text style={s.calcIcon}>🧮</Text>
+        <Text style={s.calcIcon}>⊞</Text>
       </TouchableOpacity>
       {loading ? (
         <View style={s.center}>
@@ -344,15 +348,16 @@ function createStyles(t) {
   return StyleSheet.create({
     container: {flex:1, backgroundColor:t.bg},
     header: {backgroundColor:t.headerBg, paddingTop:40, paddingBottom:60, paddingHorizontal:20, borderBottomLeftRadius:35, borderBottomRightRadius:35, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.15, shadowRadius:6, elevation:5},
-    themeTopBtn: {position:'absolute', top:50, right:20, width:45, height:45, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.3, shadowRadius:4, elevation:5, zIndex:20},
-    settingsTopBtn: {position:'absolute', top:50, left:20, width:45, height:45, backgroundColor:t.secondary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.secondary, shadowOffset:{width:0,height:2}, shadowOpacity:0.3, shadowRadius:4, elevation:5, zIndex:20},
-    topBtnIcon: {fontSize:22},
+    themeTopBtn: {position:'absolute', top:45, right:15, width:38, height:38, justifyContent:'center', alignItems:'center', zIndex:20},
+    settingsTopBtn: {position:'absolute', top:45, left:15, width:38, height:38, justifyContent:'center', alignItems:'center', zIndex:20},
+    iconCircle: {width:38, height:38, borderRadius:19, backgroundColor:'rgba(255,255,255,0.2)', justifyContent:'center', alignItems:'center', borderWidth:1.5, borderColor:'rgba(255,255,255,0.4)'},
+    topBtnIcon: {fontSize:20, color:'rgba(255,255,255,0.95)', fontWeight:'500'},
     dateContainer: {alignItems:'center', marginTop:15},
     datePersian: {fontSize:30, fontWeight:'bold', color:t.textPrimary, marginBottom:10},
     dateGregorian: {fontSize:16, color:t.textSecondary, marginBottom:12},
     lastUpdate: {fontSize:13, color:t.textSecondary},
-    calcBtn: {position:'absolute', top:165, left:20, width:55, height:55, backgroundColor:t.primary, borderRadius:28, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10},
-    calcIcon: {fontSize:28},
+    calcBtn: {position:'absolute', top:165, left:20, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10},
+    calcIcon: {fontSize:24, color:'#FFF', fontWeight:'600'},
     center: {flex:1, justifyContent:'center', alignItems:'center', padding:30},
     loadingText: {color:t.primary, fontSize:16, marginTop:15},
     errorIcon: {fontSize:60, marginBottom:15},
