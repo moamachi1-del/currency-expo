@@ -76,25 +76,152 @@ export default function App() {
 
   const theme = THEMES[currentTheme];
   const fontScale = FONT_SIZES[fontSize].scale;
+  const isRTL = language === 'fa';
+
   const t = (fa, en) => language === 'fa' ? fa : en;
 
-  // توابع fetchRates, convert و updateDates مثل قبل هستند
-  // ... ادامه کد مثل نسخه قبلی فقط تغییرات سبک اعمال شده‌اند
+  const toJalali = (gDate) => {
+    let gy = gDate.getFullYear(), gm = gDate.getMonth() + 1, gd = gDate.getDate();
+    const g_d_m = [0,31,59,90,120,151,181,212,243,273,304,334];
+    let jy = gy <= 1600 ? 0 : 979;
+    gy -= gy <= 1600 ? 621 : 1600;
+    const gy2 = gm > 2 ? gy + 1 : gy;
+    let days = 365*gy + Math.floor((gy2+3)/4) - Math.floor((gy2+99)/100) + Math.floor((gy2+399)/400) - 80 + gd + g_d_m[gm-1];
+    jy += 33 * Math.floor(days / 12053);
+    days %= 12053;
+    jy += 4 * Math.floor(days / 1461);
+    days %= 1461;
+    if (days > 365) { jy += Math.floor((days-1)/365); days = (days-1) % 365; }
+    const jm = days < 186 ? 1 + Math.floor(days/31) : 7 + Math.floor((days-186)/30);
+    const jd = 1 + (days < 186 ? days%31 : (days-186)%30);
+    const weekDays = ['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
+    const months = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+    return `${weekDays[gDate.getDay()]} ${jd} ${months[jm-1]} ${jy}`;
+  };
 
-  const s = createStyles(theme, fontScale, language);
+  const updateDates = () => {
+    const now = new Date();
+    setPersianDate(toJalali(now));
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    setGregorianDate(`${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`);
+  };
 
-  // باقی کد بدون تغییر باقی میمونه
-  // فقط اطمینان حاصل شد که در کارت‌ها و ریزکارت‌ها، اسم ارز سمت راست و قیمت سمت چپ است
-  // و پدینگ پایین لیست ارزها ۲۰ شده
-}
-function createStyles(t, scale, lang) {
-  const isRTL = lang === 'fa';
-  return StyleSheet.create({
-    // سایر استایل‌ها مثل نسخه قبل...
-    modalList: { padding:15, paddingBottom:20 }, // <-- پدینگ پایین روی ۲۰
-    price: { fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:isRTL?'left':'right' }, // قیمت سمت چپ
-    resName: { fontSize:16*scale, color:t.textPrimary, fontWeight:'600', textAlign:'right', flex:1 }, // اسم سمت راست
-    resValue: { fontSize:18*scale, fontWeight:'bold', color:t.primary, textAlign:'left' }, // مقدار سمت چپ
-    // بقیه استایل‌ها مثل قبل
-  });
-}
+  const fetchRates = async () => {
+    setError(null);
+    try {
+      const res = await fetch(API_URL, { headers: { 'Accept': 'application/json', 'User-Agent': 'ArzbanApp/1.0' }});
+      if (!res.ok) throw new Error(`خطای ${res.status}`);
+      const data = await res.json();
+      const newRates = { TOMAN: 1 };
+      const items = [];
+      const convItems = ['TOMAN'];
+      const allowed = Object.keys(CURRENCIES).filter(k => k !== 'TOMAN');
+      [data.gold, data.currency, data.cryptocurrency].forEach(arr => {
+        if (arr && Array.isArray(arr)) {
+          arr.forEach(item => {
+            if (item.symbol && item.price && allowed.includes(item.symbol)) {
+              newRates[item.symbol] = parseInt(item.price);
+              items.push(item.symbol);
+              convItems.push(item.symbol);
+            }
+          });
+        }
+      });
+      setRates(newRates);
+      setAllItems(items);
+      setConverterItems(convItems);
+      updateDates();
+      const now = new Date();
+      const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+      setLastUpdate(time);
+      await AsyncStorage.multiSet([['@cache', JSON.stringify(newRates)], ['@update', time]]);
+    } catch (err) {
+      setError(t('خطا در دریافت', 'Fetch Error'));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [[,cache], [,update], [,selected], [,thm], [,fsize], [,lang]] = await AsyncStorage.multiGet(['@cache','@update','@selected','@theme','@fontsize','@lang']);
+        if (cache) setRates({...JSON.parse(cache), TOMAN: 1});
+        if (update) setLastUpdate(update);
+        if (selected) setSelectedItems(JSON.parse(selected));
+        if (thm) setCurrentTheme(thm);
+        if (fsize) setFontSize(fsize);
+        if (lang) setLanguage(lang);
+        updateDates();
+      } catch {}
+      setLoading(false);
+      fetchRates();
+    })();
+    const interval = setInterval(fetchRates, 5*60*1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => { AsyncStorage.setItem('@selected', JSON.stringify(selectedItems)); }, [selectedItems]);
+
+  const getInfo = (symbol) => CURRENCIES[symbol] || { name: symbol, nameEn: symbol, flag: '🌍', cat: 'other', unit: 'تومان', unitEn: 'Toman' };
+
+  const formatNumber = (num, decimals = 0) => {
+    if (decimals > 0) {
+      return num.toLocaleString('en-US', {maximumFractionDigits: decimals, minimumFractionDigits: 0});
+    }
+    return num.toLocaleString('en-US', {maximumFractionDigits: 0});
+  };
+
+  const convert = (target) => {
+    const fromRate = rates[fromCurrency] || 1;
+    const toRate = rates[target] || 1;
+    const amt = parseFloat(amount) || 0;
+    if (amt > 0) {
+      const result = (amt * fromRate) / toRate;
+      if (target === 'TOMAN') return formatNumber(result, 2);
+      if (target.includes('GOLD')) return formatNumber(result, 3) + t(' گرم', ' g');
+      if (target.includes('COIN')) return formatNumber(result, 4);
+      if (target === 'BTC' || target === 'ETH') return formatNumber(result, 8);
+      return formatNumber(result, 2);
+    }
+    return '---';
+  };
+
+  const saveTheme = async (t) => {
+    setCurrentTheme(t);
+    await AsyncStorage.setItem('@theme', t);
+    setSettingsSubMenu(null);
+    setSettingsVisible(false);
+  };
+
+  const saveFontSize = async (f) => {
+    setFontSize(f);
+    await AsyncStorage.setItem('@fontsize', f);
+    setSettingsSubMenu(null);
+    setSettingsVisible(false);
+  };
+
+  const saveLanguage = async (l) => {
+    setLanguage(l);
+    await AsyncStorage.setItem('@lang', l);
+    setSettingsSubMenu(null);
+    setSettingsVisible(false);
+  };
+
+  const s = createStyles(theme, fontScale, isRTL);
+
+  if (converterVisible) {
+    const fromInfo = getInfo(fromCurrency);
+    return (
+      <SafeAreaView style={s.container}>
+        <StatusBar style={currentTheme === 'gold' || currentTheme === 'neon' ? "light" : "dark"} />
+        <View style={s.convHeader}>
+          <TouchableOpacity onPress={() => setConverterVisible(false)} style={s.backBtn}>
+            <Text style={s.backIcon}>←</Text>
+          </TouchableOpacity>
+          <Text style={s.convTitle}>{t('مبدل ارز', 'Converter')}</Text>
+          <View style={{width:40}} />
+        </View>
+        <ScrollView style={s.convScreen} contentContainerStyle={{paddingBottom: 150}}>
+          <TouchableOpacity style={s.currBox} onPress={() => setCurrencyModal(true)}>
+            <Text style={s.currFlag}>{fromInfo.flag}</Text>
+            <Text style={s.currText}>{isRTL ? fromInfo
