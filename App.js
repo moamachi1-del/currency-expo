@@ -76,7 +76,6 @@ export default function App() {
 
   const theme = THEMES[currentTheme];
   const fontScale = FONT_SIZES[fontSize].scale;
-  const isRTL = language === 'fa';
 
   const t = (fa, en) => language === 'fa' ? fa : en;
 
@@ -207,7 +206,7 @@ export default function App() {
     setSettingsVisible(false);
   };
 
-  const s = createStyles(theme, fontScale, isRTL);
+  const s = createStyles(theme, fontScale, language);
 
   if (converterVisible) {
     const fromInfo = getInfo(fromCurrency);
@@ -221,7 +220,295 @@ export default function App() {
           <Text style={s.convTitle}>{t('مبدل ارز', 'Converter')}</Text>
           <View style={{width:40}} />
         </View>
-        <ScrollView style={s.convScreen} contentContainerStyle={{paddingBottom: 150}}>
+        <ScrollView style={s.convScreen} contentContainerStyle={{paddingBottom: 100}}>
           <TouchableOpacity style={s.currBox} onPress={() => setCurrencyModal(true)}>
             <Text style={s.currFlag}>{fromInfo.flag}</Text>
-            <Text style={s.currText}>{isRTL ? fromInfo
+            <Text style={s.currText}>{language === 'fa' ? fromInfo.name : fromInfo.nameEn}</Text>
+          </TouchableOpacity>
+          <Text style={s.label}>{t('مقدار:', 'Amount:')}</Text>
+          <TextInput style={s.input} value={amount} onChangeText={setAmount} keyboardType="numeric" placeholder={t('مثال: 1000000', 'e.g. 1000000')} placeholderTextColor="#999" />
+          <Text style={s.resultsTitle}>{t('نتایج:', 'Results:')}</Text>
+          {converterItems.filter(x => x !== fromCurrency && (getInfo(x).cat === 'currency' || getInfo(x).cat === 'crypto' || x === 'TOMAN')).map(sym => {
+            const info = getInfo(sym);
+            const res = convert(sym);
+            return (
+              <View key={sym} style={s.resCard}>
+                <Text style={s.resValue}>{res}</Text>
+                <Text style={s.resName}>{language === 'fa' ? info.name : info.nameEn}</Text>
+              </View>
+            );
+          })}
+        </ScrollView>
+        <Modal animationType="slide" transparent visible={currencyModal} onRequestClose={() => setCurrencyModal(false)}>
+          <View style={s.modalOverlay}>
+            <View style={s.modalContent}>
+              <View style={s.modalHeader}>
+                <Text style={s.modalTitle}>{t('انتخاب ارز', 'Select Currency')}</Text>
+                <TouchableOpacity onPress={() => setCurrencyModal(false)}><Text style={s.closeBtn}>✕</Text></TouchableOpacity>
+              </View>
+              <ScrollView style={s.modalList}>
+                {converterItems.filter(x => getInfo(x).cat === 'currency' || getInfo(x).cat === 'crypto' || x === 'TOMAN').map(sym => {
+                  const info = getInfo(sym);
+                  return (
+                    <TouchableOpacity key={sym} style={s.currModalItem} onPress={() => { setFromCurrency(sym); setCurrencyModal(false); }}>
+                      <Text style={s.currModalFlag}>{info.flag}</Text>
+                      <Text style={s.currModalText}>{language === 'fa' ? info.name : info.nameEn}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={s.container}>
+      <StatusBar style={currentTheme === 'gold' || currentTheme === 'neon' ? "light" : "dark"} />
+      <View style={s.header}>
+        <TouchableOpacity style={s.settingsTopBtn} onPress={() => setSettingsVisible(true)}>
+          <View style={s.iconCircle}>
+            <Text style={s.topBtnIcon}>≡</Text>
+          </View>
+        </TouchableOpacity>
+        <View style={s.dateContainer}>
+          <Text style={s.datePersian}>{persianDate}</Text>
+          <Text style={s.dateGregorian}>{gregorianDate}</Text>
+          <Text style={s.lastUpdate}>{t('آخرین بروزرسانی:', 'Last Update:')} {lastUpdate}</Text>
+        </View>
+      </View>
+      <TouchableOpacity style={s.calcBtn} onPress={() => setConverterVisible(true)}>
+        <Text style={s.calcIcon}>🧮</Text>
+      </TouchableOpacity>
+      {loading ? (
+        <View style={s.center}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={s.loadingText}>{t('در حال بارگذاری...', 'Loading...')}</Text>
+        </View>
+      ) : error ? (
+        <View style={s.center}>
+          <Text style={s.errorIcon}>⚠️</Text>
+          <Text style={s.error}>{error}</Text>
+        </View>
+      ) : (
+        <ScrollView style={s.list} showsVerticalScrollIndicator={false}>
+          {selectedItems.map(sym => {
+            const info = getInfo(sym);
+            const val = rates[sym];
+            return (
+              <View key={sym} style={s.card}>
+                <View style={s.cardHeader}>
+                  {info.cat === 'currency' && <Text style={s.flag}>{info.flag}</Text>}
+                  <Text style={s.name}>{language === 'fa' ? info.name : info.nameEn}</Text>
+                </View>
+                <Text style={s.price}>
+                  {val ? formatNumber(val) : '...'}
+                </Text>
+              </View>
+            );
+          })}
+          <View style={s.footer}><Text style={s.footerText}>{t('بروزرسانی خودکار هر ۵ دقیقه', 'Auto-refresh every 5 minutes')}</Text></View>
+        </ScrollView>
+      )}
+
+      {/* Settings Modal */}
+      <Modal animationType="slide" transparent visible={settingsVisible} onRequestClose={() => setSettingsVisible(false)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>{t('تنظیمات', 'Settings')}</Text>
+              <TouchableOpacity onPress={() => setSettingsVisible(false)}><Text style={s.closeBtn}>✕</Text></TouchableOpacity>
+            </View>
+            <ScrollView style={s.modalList}>
+              <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('currencies')}>
+                <Text style={s.settingsMenuText}>{t('لیست ارزها', 'Currency List')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('fontsize')}>
+                <Text style={s.settingsMenuText}>{t('اندازه قلم', 'Font Size')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('language')}>
+                <Text style={s.settingsMenuText}>{t('انتخاب زبان', 'Language')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('theme')}>
+                <Text style={s.settingsMenuText}>{t('رنگ‌بندی', 'Colors')}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Sub-menus */}
+      <Modal animationType="slide" transparent visible={settingsSubMenu === 'currencies'} onRequestClose={() => setSettingsSubMenu(null)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>{t('لیست ارزها', 'Currency List')}</Text>
+              <View style={{width:40}} />
+            </View>
+            <ScrollView style={s.modalList}>
+              {['gold','currency','crypto'].map(cat => {
+                const items = allItems.filter(sym => getInfo(sym).cat === cat);
+                if (!items.length) return null;
+                return (
+                  <View key={cat}>
+                    <Text style={s.catTitle}>{cat === 'gold' ? t('طلا و سکه', 'Gold & Coins') : cat === 'crypto' ? t('کریپتو', 'Crypto') : t('ارزها', 'Currencies')}</Text>
+                    {items.map(sym => {
+                      const info = getInfo(sym);
+                      const sel = selectedItems.includes(sym);
+                      return (
+                        <TouchableOpacity key={sym} style={[s.modalItem, sel && s.modalItemSel]} onPress={() => setSelectedItems(sel ? selectedItems.filter(x => x !== sym) : [...selectedItems, sym])}>
+                          {info.cat === 'currency' && <Text style={s.modalItemFlag}>{info.flag}</Text>}
+                          <Text style={s.modalItemText}>{language === 'fa' ? info.name : info.nameEn}</Text>
+                          {sel && <Text style={s.check}>✓</Text>}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                );
+              })}
+            </ScrollView>
+            <TouchableOpacity style={s.doneBtn} onPress={() => setSettingsSubMenu(null)}>
+              <Text style={s.doneBtnText}>{t('تایید', 'Done')} ({selectedItems.length})</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal animationType="slide" transparent visible={settingsSubMenu === 'fontsize'} onRequestClose={() => setSettingsSubMenu(null)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>{t('اندازه قلم', 'Font Size')}</Text>
+              <View style={{width:40}} />
+            </View>
+            <View style={s.choiceList}>
+              {Object.keys(FONT_SIZES).map(k => (
+                <TouchableOpacity key={k} style={[s.choiceItem, fontSize === k && s.choiceItemSel]} onPress={() => saveFontSize(k)}>
+                  <Text style={s.choiceText}>{language === 'fa' ? FONT_SIZES[k].name : FONT_SIZES[k].nameEn}</Text>
+                  {fontSize === k && <Text style={s.check}>✓</Text>}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal animationType="slide" transparent visible={settingsSubMenu === 'language'} onRequestClose={() => setSettingsSubMenu(null)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>{t('انتخاب زبان', 'Language')}</Text>
+              <View style={{width:40}} />
+            </View>
+            <View style={s.choiceList}>
+              <TouchableOpacity style={[s.choiceItem, language === 'fa' && s.choiceItemSel]} onPress={() => saveLanguage('fa')}>
+                <Text style={s.choiceText}>فارسی</Text>
+                {language === 'fa' && <Text style={s.check}>✓</Text>}
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.choiceItem, language === 'en' && s.choiceItemSel]} onPress={() => saveLanguage('en')}>
+                <Text style={s.choiceText}>English</Text>
+                {language === 'en' && <Text style={s.check}>✓</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal animationType="slide" transparent visible={settingsSubMenu === 'theme'} onRequestClose={() => setSettingsSubMenu(null)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>{t('رنگ‌بندی', 'Colors')}</Text>
+              <View style={{width:40}} />
+            </View>
+            <ScrollView style={s.modalList}>
+              {Object.keys(THEMES).map(k => {
+                const tm = THEMES[k];
+                return (
+                  <TouchableOpacity key={k} style={[s.themeItem, {backgroundColor:tm.headerBg, borderColor:tm.primary}]} onPress={() => saveTheme(k)}>
+                    <Text style={[s.themeItemText, {color:tm.textPrimary}]}>{language === 'fa' ? tm.name : tm.nameEn}</Text>
+                    {currentTheme === k && <Text style={[s.check, {color:tm.primary}]}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+function createStyles(t, scale, lang) {
+  const isRTL = lang === 'fa';
+  return StyleSheet.create({
+    container: {flex:1, backgroundColor:t.bg},
+    header: {backgroundColor:t.headerBg, paddingTop:40, paddingBottom:60, paddingHorizontal:20, borderBottomLeftRadius:35, borderBottomRightRadius:35, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.15, shadowRadius:6, elevation:5},
+    settingsTopBtn: {position:'absolute', top:45, left:15, width:40, height:40, justifyContent:'center', alignItems:'center', zIndex:20},
+    iconCircle: {width:40, height:40, borderRadius:20, backgroundColor:t.primary, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.4, shadowRadius:4, elevation:4},
+    topBtnIcon: {fontSize:22*scale, color:'#FFF', fontWeight:'600'},
+    dateContainer: {alignItems:'center', marginTop:15},
+    datePersian: {fontSize:30*scale, fontWeight:'bold', color:t.textPrimary, marginBottom:10},
+    dateGregorian: {fontSize:16*scale, color:t.textSecondary, marginBottom:12},
+    lastUpdate: {fontSize:13*scale, color:t.textSecondary},
+    calcBtn: {position:'absolute', top:165, left:20, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10},
+    calcIcon: {fontSize:24*scale, color:'#FFF', fontWeight:'600'},
+    center: {flex:1, justifyContent:'center', alignItems:'center', padding:30},
+    loadingText: {color:t.primary, fontSize:16*scale, marginTop:15},
+    errorIcon: {fontSize:60, marginBottom:15},
+    error: {color:'#E74C3C', fontSize:18*scale, textAlign:'center'},
+    list: {flex:1, padding:16, marginTop:40},
+    card: {backgroundColor:t.cardBg, borderRadius:20, padding:20, marginBottom:14, borderWidth:2, borderColor:t.cardBorder, shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.12, shadowRadius:4, elevation:3},
+    cardHeader: {flexDirection:'row', alignItems:'center', marginBottom:12},
+    flag: {fontSize:28, marginRight:12},
+    name: {fontSize:17*scale, fontWeight:'600', color:t.textPrimary, flex:1},
+    price: {fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:isRTL?'right':'left'},
+    footer: {alignItems:'center', paddingVertical:25},
+    footerText: {color:'#95A5A6', fontSize:12*scale},
+    modalOverlay: {flex:1, backgroundColor:'rgba(0,0,0,0.6)', justifyContent:'flex-end'},
+    modalContent: {backgroundColor:t.cardBg, borderTopLeftRadius:30, borderTopRightRadius:30, maxHeight:'85%', paddingBottom:20},
+    modalHeader: {flexDirection:'row', justifyContent:'space-between', alignItems:'center', padding:20, borderBottomWidth:1, borderBottomColor:t.cardBorder},
+    modalTitle: {fontSize:22*scale, fontWeight:'bold', color:t.primary},
+    closeBtn: {fontSize:30, color:'#95A5A6', fontWeight:'300'},
+    backIcon: {fontSize:28, color:t.primary, fontWeight:'bold'},
+    modalList: {padding:15, paddingBottom:20},
+    catTitle: {fontSize:16*scale, fontWeight:'bold', color:t.primary, marginTop:15, marginBottom:10, marginRight:10},
+    modalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:12, marginBottom:10},
+    modalItemSel: {backgroundColor:t.cardBorder, borderWidth:2, borderColor:t.primary},
+    modalItemFlag: {fontSize:24, marginRight:12},
+    modalItemText: {flex:1, fontSize:16*scale, color:t.textPrimary},
+    check: {fontSize:24, fontWeight:'bold', color:t.primary},
+    doneBtn: {backgroundColor:t.primary, marginHorizontal:20, padding:16, borderRadius:15, alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6},
+    doneBtnText: {color:'#FFF', fontSize:18*scale, fontWeight:'bold'},
+    convHeader: {backgroundColor:t.headerBg, padding:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center', borderBottomLeftRadius:25, borderBottomRightRadius:25},
+    convTitle: {fontSize:22*scale, fontWeight:'bold', color:t.textPrimary},
+    convScreen: {flex:1, padding:20, backgroundColor:t.bg},
+    currBox: {backgroundColor:t.cardBg, borderRadius:20, padding:25, marginBottom:20, borderWidth:2, borderColor:t.cardBorder, flexDirection:'row', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.15, shadowRadius:4, elevation:4},
+    currFlag: {fontSize:40, marginRight:15},
+    currText: {fontSize:20*scale, fontWeight:'bold', color:t.textPrimary, flex:1},
+    label: {fontSize:17*scale, fontWeight:'bold', color:t.primary, marginBottom:12},
+    input: {backgroundColor:t.cardBg, color:t.textPrimary, padding:18, borderRadius:15, fontSize:17*scale, borderWidth:2, borderColor:t.cardBorder, fontWeight:'600', marginBottom:25},
+    resultsTitle: {fontSize:18*scale, fontWeight:'bold', color:t.textPrimary, marginBottom:15},
+    resCard: {backgroundColor:t.cardBg, borderRadius:16, padding:18, marginBottom:12, borderWidth:2, borderColor:t.cardBorder, flexDirection:'row', justifyContent:'space-between', alignItems:'center'},
+    resName: {fontSize:16*scale, color:t.textPrimary, fontWeight:'600', textAlign:'right'},
+    resValue: {fontSize:18*scale, fontWeight:'bold', color:t.primary, textAlign:'left'},
+    currModalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:15, marginBottom:10, borderWidth:1, borderColor:t.cardBorder},
+    currModalFlag: {fontSize:32, marginRight:15},
+    currModalText: {fontSize:18*scale, color:t.textPrimary, fontWeight:'600'},
+    settingsMenuItem: {flexDirection:'row', justifyContent:isRTL?'flex-end':'flex-start', alignItems:'center', backgroundColor:t.headerBg, padding:20, borderRadius:15, marginBottom:12, borderWidth:1, borderColor:t.cardBorder},
+    settingsMenuText: {fontSize:17*scale, color:t.textPrimary, fontWeight:'600', textAlign:isRTL?'right':'left'},
+    choiceList: {padding:20},
+    choiceItem: {flexDirection:'row', justifyContent:'space-between', alignItems:'center', backgroundColor:t.headerBg, padding:20, borderRadius:15, marginBottom:12, borderWidth:2, borderColor:t.cardBorder},
+    choiceItemSel: {backgroundColor:t.cardBorder, borderColor:t.primary},
+    choiceText: {fontSize:18*scale, color:t.textPrimary, fontWeight:'600', textAlign:isRTL?'right':'left', flex:1},
+    themeItem: {flexDirection:'row', alignItems:'center', justifyContent:'space-between', padding:18, borderRadius:15, marginBottom:10, borderWidth:2},
+    themeItemText: {fontSize:17*scale, fontWeight:'600', textAlign:isRTL?'right':'left', flex:1},
+    backBtn: {padding:5},
+  });
+}
