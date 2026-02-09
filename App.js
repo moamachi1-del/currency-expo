@@ -477,7 +477,7 @@ function createStyles(t, scale, lang) {
     modalTitle: {fontSize:22*scale, fontWeight:'bold', color:t.primary},
     closeBtn: {fontSize:30, color:'#95A5A6', fontWeight:'300'},
     backIcon: {fontSize:28, color:t.primary, fontWeight:'bold'},
-    modalList: {padding:15, paddingBottom:20},
+    modalList: {padding:15, paddingBottom:1},
     catTitle: {fontSize:16*scale, fontWeight:'bold', color:t.primary, marginTop:15, marginBottom:10, marginRight:10},
     modalItem: {flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:18, borderRadius:12, marginBottom:10},
     modalItemSel: {backgroundColor:t.cardBorder, borderWidth:2, borderColor:t.primary},
