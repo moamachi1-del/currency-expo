@@ -50,8 +50,8 @@ const CURRENCIES = {
   'IR_COIN_BAHAR': { name: 'سکه بهار', nameEn: 'Bahar Coin', flag: '', cat: 'gold', unit: 'تومان', unitEn: 'Toman' },
   'IR_COIN_HALF': { name: 'نیم سکه', nameEn: 'Half Coin', flag: '', cat: 'gold', unit: 'تومان', unitEn: 'Toman' },
   'IR_COIN_QUARTER': { name: 'ربع سکه', nameEn: 'Quarter Coin', flag: '', cat: 'gold', unit: 'تومان', unitEn: 'Toman' },
-  'BTC': { name: 'بیت‌کوین', nameEn: 'Bitcoin', flag: '', cat: 'crypto', unit: 'دلار', unitEn: 'USD' },
-  'ETH': { name: 'اتریوم', nameEn: 'Ethereum', flag: '', cat: 'crypto', unit: 'دلار', unitEn: 'USD' },
+  'BTC': { name: 'بیت‌کوین', nameEn: 'Bitcoin', flag: '', cat: 'crypto', unit: 'تومان', unitEn: 'Toman' },
+  'ETH': { name: 'اتریوم', nameEn: 'Ethereum', flag: '', cat: 'crypto', unit: 'تومان', unitEn: 'Toman' },
 };
 
 export default function App() {
@@ -115,11 +115,31 @@ export default function App() {
       const items = [];
       const convItems = ['TOMAN'];
       const allowed = Object.keys(CURRENCIES).filter(k => k !== 'TOMAN');
+      
+      let usdRate = 1;
+      
+      // First pass: get USD rate
+      [data.gold, data.currency, data.cryptocurrency].forEach(arr => {
+        if (arr && Array.isArray(arr)) {
+          arr.forEach(item => {
+            if (item.symbol === 'USD' && item.price) {
+              usdRate = parseInt(item.price);
+            }
+          });
+        }
+      });
+      
+      // Second pass: process all items
       [data.gold, data.currency, data.cryptocurrency].forEach(arr => {
         if (arr && Array.isArray(arr)) {
           arr.forEach(item => {
             if (item.symbol && item.price && allowed.includes(item.symbol)) {
-              newRates[item.symbol] = parseInt(item.price);
+              // BTC and ETH prices are in USD, convert to Toman
+              if (item.symbol === 'BTC' || item.symbol === 'ETH') {
+                newRates[item.symbol] = parseInt(item.price) * usdRate;
+              } else {
+                newRates[item.symbol] = parseInt(item.price);
+              }
               items.push(item.symbol);
               convItems.push(item.symbol);
             }
