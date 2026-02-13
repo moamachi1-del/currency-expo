@@ -6,11 +6,12 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
-      "backgroundColor": "#F8FAFC"  // رنگ زمینه اپت (سفید/خاکستری روشن)
+      "backgroundColor": "#F8FAFC"
     },
     "android": {
       "package": "com.currencyapp.expo",
-      "versionCode": 1
+      "versionCode": 1,
+      "usesCleartextTraffic": true
     }
   }
 }
