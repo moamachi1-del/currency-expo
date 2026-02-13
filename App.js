@@ -6,8 +6,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_KEY = 'B2JhTivIrHZHFFJDdKtE1vxP1Mp3LBuH';
-const API_URL = `https://BrsApi.ir/Api/Market/Gold_Currency.php?key=${API_KEY}`;
+const SERVER_URL = 'http://171.22.24.109:3000/prices';
 
 const THEMES = {
   green: { name: 'سبز', nameEn: 'Green', bg: '#F0F9F6', headerBg: '#E8F8F5', primary: '#00CBA9', secondary: '#4ECDC4', cardBg: '#FFFFFF', cardBorder: '#D4F1E8', textPrimary: '#1A5F4F', textSecondary: '#5B7A6F' },
@@ -108,7 +107,7 @@ export default function App() {
   const fetchRates = async () => {
     setError(null);
     try {
-      const res = await fetch(API_URL, { headers: { 'Accept': 'application/json', 'User-Agent': 'ArzbanApp/1.0' }});
+      const res = await fetch(SERVER_URL, { headers: { 'Accept': 'application/json', 'User-Agent': 'ArzbanApp/1.0' }});
       if (!res.ok) throw new Error(`خطای ${res.status}`);
       const data = await res.json();
       const newRates = { TOMAN: 1 };
