@@ -119,7 +119,7 @@ export default function App() {
       }
 
       const res = await fetch(API_URL);
-      if (!res.ok) throw new Error(`خطای ${res.status}`);
+      if (!res.ok) throw new Error('Network error');
       const data = await res.json();
 
       const newRates = { TOMAN: 1 };
@@ -159,8 +159,7 @@ export default function App() {
       setAllItems(items);
       setConverterItems(convItems);
       updateDates();
-      const now = new Date();
-      const time = `\( {now.getHours().toString().padStart(2,'0')}: \){now.getMinutes().toString().padStart(2,'0')}`;
+      const time = `\( {new Date().getHours().toString().padStart(2,'0')}: \){new Date().getMinutes().toString().padStart(2,'0')}`;
       setLastUpdate(time);
       await AsyncStorage.setItem('prices_cache', JSON.stringify({
         data: newRates,
@@ -242,8 +241,6 @@ export default function App() {
   };
 
   const s = createStyles(theme, fontScale, language);
-
-  // بقیه کد بدون تغییر (converterVisible, return ها، modal ها، ...)
 
   if (converterVisible) {
     const fromInfo = getInfo(fromCurrency);
@@ -350,9 +347,8 @@ export default function App() {
         </ScrollView>
       )}
 
-      {/* بقیه modal ها و return بدون تغییر */}
-      {/* settings modal, sub-menus, ... */}
-      {/* فقط fetch و کش تغییر کرد */}
+      {/* بقیه modal ها و settings بدون تغییر */}
+      {/* فقط fetch و کش تغییر کرده */}
     </SafeAreaView>
   );
 }
