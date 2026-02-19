@@ -6,7 +6,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://171.22.24.109:3000/prices';
+const SERVER_URL = 'https://arzb1234.ir/api/rates';
 
 const THEMES = {
   green: { name: 'سبز', nameEn: 'Green', bg: '#F0F9F6', headerBg: '#E8F8F5', primary: '#00CBA9', secondary: '#4ECDC4', cardBg: '#FFFFFF', cardBorder: '#D4F1E8', textPrimary: '#1A5F4F', textSecondary: '#5B7A6F' },
@@ -107,28 +107,17 @@ export default function App() {
   const fetchRates = async () => {
     setError(null);
     try {
-      const cached = await AsyncStorage.getItem('prices_cache');
-      if (cached) {
-        const { data, timestamp } = JSON.parse(cached);
-        if (Date.now() - timestamp < 5 * 60 * 1000) {
-          setRates(data);
-          setLoading(false);
-          updateDates();
-          return;
-        }
-      }
-
-      const res = await fetch(API_URL);
-      if (!res.ok) throw new Error('Network error');
+      const res = await fetch(SERVER_URL, { headers: { 'Accept': 'application/json', 'User-Agent': 'ArzbanApp/1.0' }});
+      if (!res.ok) throw new Error(`خطای ${res.status}`);
       const data = await res.json();
-
       const newRates = { TOMAN: 1 };
       const items = [];
       const convItems = ['TOMAN'];
       const allowed = Object.keys(CURRENCIES).filter(k => k !== 'TOMAN');
-
+      
       let usdRate = 1;
-
+      
+      // First pass: get USD rate
       [data.gold, data.currency, data.cryptocurrency].forEach(arr => {
         if (arr && Array.isArray(arr)) {
           arr.forEach(item => {
@@ -138,11 +127,13 @@ export default function App() {
           });
         }
       });
-
+      
+      // Second pass: process all items
       [data.gold, data.currency, data.cryptocurrency].forEach(arr => {
         if (arr && Array.isArray(arr)) {
           arr.forEach(item => {
             if (item.symbol && item.price && allowed.includes(item.symbol)) {
+              // BTC and ETH prices are in USD, convert to Toman
               if (item.symbol === 'BTC' || item.symbol === 'ETH') {
                 newRates[item.symbol] = parseInt(item.price) * usdRate;
               } else {
@@ -154,17 +145,14 @@ export default function App() {
           });
         }
       });
-
       setRates(newRates);
       setAllItems(items);
       setConverterItems(convItems);
       updateDates();
-      const time = `\( {new Date().getHours().toString().padStart(2,'0')}: \){new Date().getMinutes().toString().padStart(2,'0')}`;
+      const now = new Date();
+      const time = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
       setLastUpdate(time);
-      await AsyncStorage.setItem('prices_cache', JSON.stringify({
-        data: newRates,
-        timestamp: Date.now()
-      }));
+      await AsyncStorage.multiSet([['@cache', JSON.stringify(newRates)], ['@update', time]]);
     } catch (err) {
       setError(t('خطا در دریافت', 'Fetch Error'));
     }
@@ -174,11 +162,8 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        const [[,cache], [,update], [,selected], [,thm], [,fsize], [,lang]] = await AsyncStorage.multiGet(['prices_cache','@update','@selected','@theme','@fontsize','@lang']);
-        if (cache) {
-          const { data } = JSON.parse(cache);
-          setRates(data);
-        }
+        const [[,cache], [,update], [,selected], [,thm], [,fsize], [,lang]] = await AsyncStorage.multiGet(['@cache','@update','@selected','@theme','@fontsize','@lang']);
+        if (cache) setRates({...JSON.parse(cache), TOMAN: 1});
         if (update) setLastUpdate(update);
         if (selected) setSelectedItems(JSON.parse(selected));
         if (thm) setCurrentTheme(thm);
@@ -347,8 +332,134 @@ export default function App() {
         </ScrollView>
       )}
 
-      {/* بقیه modal ها و settings بدون تغییر */}
-      {/* فقط fetch و کش تغییر کرده */}
+      {/* Settings Modal */}
+      <Modal animationType="slide" transparent visible={settingsVisible} onRequestClose={() => setSettingsVisible(false)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <Text style={s.modalTitle}>{t('تنظیمات', 'Settings')}</Text>
+              <TouchableOpacity onPress={() => setSettingsVisible(false)}><Text style={s.closeBtn}>✕</Text></TouchableOpacity>
+            </View>
+            <ScrollView style={s.modalList}>
+              <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('currencies')}>
+                <Text style={s.settingsMenuText}>{t('لیست ارزها', 'Currency List')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('fontsize')}>
+                <Text style={s.settingsMenuText}>{t('اندازه قلم', 'Font Size')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('language')}>
+                <Text style={s.settingsMenuText}>{t('انتخاب زبان', 'Language')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={s.settingsMenuItem} onPress={() => setSettingsSubMenu('theme')}>
+                <Text style={s.settingsMenuText}>{t('رنگ‌بندی', 'Colors')}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Sub-menus */}
+      <Modal animationType="slide" transparent visible={settingsSubMenu === 'currencies'} onRequestClose={() => setSettingsSubMenu(null)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>{t('لیست ارزها', 'Currency List')}</Text>
+              <View style={{width:40}} />
+            </View>
+            <ScrollView style={s.modalList}>
+              {['gold','currency','crypto'].map(cat => {
+                const items = allItems.filter(sym => getInfo(sym).cat === cat);
+                if (!items.length) return null;
+                return (
+                  <View key={cat}>
+                    <Text style={s.catTitle}>{cat === 'gold' ? t('طلا و سکه', 'Gold & Coins') : cat === 'crypto' ? t('کریپتو', 'Crypto') : t('ارزها', 'Currencies')}</Text>
+                    {items.map(sym => {
+                      const info = getInfo(sym);
+                      const sel = selectedItems.includes(sym);
+                      return (
+                        <TouchableOpacity key={sym} style={[s.modalItem, sel && s.modalItemSel]} onPress={() => setSelectedItems(sel ? selectedItems.filter(x => x !== sym) : [...selectedItems, sym])}>
+                          {info.cat === 'currency' && <Text style={s.modalItemFlag}>{info.flag}</Text>}
+                          <Text style={s.modalItemText}>{language === 'fa' ? info.name : info.nameEn}</Text>
+                          {sel && <Text style={s.check}>✓</Text>}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                );
+              })}
+            </ScrollView>
+            <TouchableOpacity style={s.doneBtn} onPress={() => setSettingsSubMenu(null)}>
+              <Text style={s.doneBtnText}>{t('تایید', 'Done')} ({selectedItems.length})</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal animationType="slide" transparent visible={settingsSubMenu === 'fontsize'} onRequestClose={() => setSettingsSubMenu(null)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>{t('اندازه قلم', 'Font Size')}</Text>
+              <View style={{width:40}} />
+            </View>
+            <View style={s.choiceList}>
+              {Object.keys(FONT_SIZES).map(k => (
+                <TouchableOpacity key={k} style={[s.choiceItem, fontSize === k && s.choiceItemSel]} onPress={() => saveFontSize(k)}>
+                  <Text style={s.choiceText}>{language === 'fa' ? FONT_SIZES[k].name : FONT_SIZES[k].nameEn}</Text>
+                  {fontSize === k && <Text style={s.check}>✓</Text>}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal animationType="slide" transparent visible={settingsSubMenu === 'language'} onRequestClose={() => setSettingsSubMenu(null)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>{t('انتخاب زبان', 'Language')}</Text>
+              <View style={{width:40}} />
+            </View>
+            <View style={s.choiceList}>
+              <TouchableOpacity style={[s.choiceItem, language === 'fa' && s.choiceItemSel]} onPress={() => saveLanguage('fa')}>
+                <Text style={s.choiceText}>فارسی</Text>
+                {language === 'fa' && <Text style={s.check}>✓</Text>}
+              </TouchableOpacity>
+              <TouchableOpacity style={[s.choiceItem, language === 'en' && s.choiceItemSel]} onPress={() => saveLanguage('en')}>
+                <Text style={s.choiceText}>English</Text>
+                {language === 'en' && <Text style={s.check}>✓</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal animationType="slide" transparent visible={settingsSubMenu === 'theme'} onRequestClose={() => setSettingsSubMenu(null)}>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <View style={s.modalHeader}>
+              <TouchableOpacity onPress={() => setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <Text style={s.modalTitle}>{t('رنگ‌بندی', 'Colors')}</Text>
+              <View style={{width:40}} />
+            </View>
+            <ScrollView style={s.modalList}>
+              {Object.keys(THEMES).map(k => {
+                const tm = THEMES[k];
+                return (
+                  <TouchableOpacity key={k} style={[s.themeItem, {backgroundColor:tm.headerBg, borderColor:tm.primary}]} onPress={() => saveTheme(k)}>
+                    <Text style={[s.themeItemText, {color:tm.textPrimary}]}>{language === 'fa' ? tm.name : tm.nameEn}</Text>
+                    {currentTheme === k && <Text style={[s.check, {color:tm.primary}]}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
