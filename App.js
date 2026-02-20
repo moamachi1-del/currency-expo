@@ -73,6 +73,9 @@ export default function App() {
   const [fontSize, setFontSize] = useState('medium');
   const [language, setLanguage] = useState('fa');
 
+  // ✅ فلگ برای جلوگیری از ذخیره مقدار default قبل از خوندن storage
+  const [initialized, setInitialized] = useState(false);
+
   const theme = THEMES[currentTheme];
   const fontScale = FONT_SIZES[fontSize].scale;
 
@@ -178,6 +181,8 @@ export default function App() {
       } catch (err) {
         console.log('❌ Error loading storage:', err);
       }
+      // ✅ اول initialized رو true میکنیم، بعد fetchRates
+      setInitialized(true);
       setLoading(false);
       fetchRates();
     })();
@@ -185,7 +190,9 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => { 
+  // ✅ فقط بعد از initialized شدن ذخیره کن
+  useEffect(() => {
+    if (!initialized) return;
     AsyncStorage.setItem('@selected', JSON.stringify(selectedItems))
       .then(() => console.log('✅ Saved:', selectedItems))
       .catch(err => console.log('❌ Error saving:', err));
