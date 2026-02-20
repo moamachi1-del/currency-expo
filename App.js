@@ -163,14 +163,21 @@ export default function App() {
     (async () => {
       try {
         const [[,cache], [,update], [,selected], [,thm], [,fsize], [,lang]] = await AsyncStorage.multiGet(['@cache','@update','@selected','@theme','@fontsize','@lang']);
+        console.log('📦 Loaded selected:', selected);
         if (cache) setRates({...JSON.parse(cache), TOMAN: 1});
         if (update) setLastUpdate(update);
-        if (selected) setSelectedItems(JSON.parse(selected));
+        if (selected) {
+          const items = JSON.parse(selected);
+          console.log('✅ Parsed selected items:', items);
+          setSelectedItems(items);
+        }
         if (thm) setCurrentTheme(thm);
         if (fsize) setFontSize(fsize);
         if (lang) setLanguage(lang);
         updateDates();
-      } catch {}
+      } catch (err) {
+        console.log('❌ Error loading storage:', err);
+      }
       setLoading(false);
       fetchRates();
     })();
@@ -178,7 +185,11 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => { AsyncStorage.setItem('@selected', JSON.stringify(selectedItems)); }, [selectedItems]);
+  useEffect(() => { 
+    AsyncStorage.setItem('@selected', JSON.stringify(selectedItems))
+      .then(() => console.log('✅ Saved:', selectedItems))
+      .catch(err => console.log('❌ Error saving:', err));
+  }, [selectedItems]);
 
   const getInfo = (symbol) => CURRENCIES[symbol] || { name: symbol, nameEn: symbol, flag: '🌍', cat: 'other', unit: 'تومان', unitEn: 'Toman' };
 
