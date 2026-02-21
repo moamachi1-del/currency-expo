@@ -101,6 +101,7 @@ export default function App() {
   const [walletVisible, setWalletVisible]         = useState(false);
   const [walletItems, setWalletItems]             = useState([]); // [{sym, amount}]
   const [walletAddVisible, setWalletAddVisible]   = useState(false);
+  const [walletContextIdx, setWalletContextIdx]   = useState(null); // long press menu
   const [walletPickSym, setWalletPickSym]         = useState('USD');
   const [walletPickSearch, setWalletPickSearch]   = useState('');
   const [walletPickAmt, setWalletPickAmt]         = useState('');
@@ -456,22 +457,7 @@ export default function App() {
               const info = getInfo(w.sym);
               return (
                 <TouchableOpacity key={idx} activeOpacity={0.8}
-                  onLongPress={()=>{
-                    Alert.alert(
-                      language==='fa'?info.name:info.nameEn,
-                      '',
-                      [
-                        { text: t('ویرایش','Edit'), onPress: ()=>{
-                          setWalletEditIdx(idx);
-                          setWalletPickSym(w.sym);
-                          setWalletPickAmt(String(w.amount));
-                          setWalletAddVisible(true);
-                        }},
-                        { text: t('حذف','Delete'), style:'destructive', onPress: ()=>deleteWalletItem(idx) },
-                        { text: t('لغو','Cancel'), style:'cancel' },
-                      ]
-                    );
-                  }}
+                  onLongPress={()=> setWalletContextIdx(idx)}
                 >
                   <View style={s.walletCard}>
                     <Text style={s.walletAmt}>{fmt(w.amount, 6).replace(/\.?0+$/, '')}</Text>
@@ -485,6 +471,39 @@ export default function App() {
             })
           )}
         </ScrollView>
+
+        {/* مدال منوی long press */}
+        <Modal animationType="fade" transparent visible={walletContextIdx!==null} onRequestClose={()=>setWalletContextIdx(null)}>
+          <TouchableOpacity style={s.ctxOverlay} activeOpacity={1} onPress={()=>setWalletContextIdx(null)}>
+            <View style={s.ctxMenu}>
+              <Text style={s.ctxTitle}>
+                {walletContextIdx!==null ? (language==='fa'?getInfo(walletItems[walletContextIdx]?.sym).name:getInfo(walletItems[walletContextIdx]?.sym).nameEn) : ''}
+              </Text>
+              <TouchableOpacity style={s.ctxBtn} onPress={()=>{
+                const idx = walletContextIdx;
+                setWalletContextIdx(null);
+                setWalletEditIdx(idx);
+                setWalletPickSym(walletItems[idx].sym);
+                setWalletPickAmt(String(walletItems[idx].amount));
+                setWalletAddVisible(true);
+              }}>
+                <Text style={s.ctxBtnText}>{t('ویرایش','Edit')}</Text>
+              </TouchableOpacity>
+              <View style={s.ctxDivider}/>
+              <TouchableOpacity style={s.ctxBtn} onPress={()=>{
+                const idx = walletContextIdx;
+                setWalletContextIdx(null);
+                deleteWalletItem(idx);
+              }}>
+                <Text style={[s.ctxBtnText, {color:'#FF4444'}]}>{t('حذف','Delete')}</Text>
+              </TouchableOpacity>
+              <View style={s.ctxDivider}/>
+              <TouchableOpacity style={s.ctxBtn} onPress={()=>setWalletContextIdx(null)}>
+                <Text style={s.ctxBtnText}>{t('لغو','Cancel')}</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
 
         {/* مدال افزودن/ویرایش دارایی */}
         <Modal animationType="slide" transparent visible={walletAddVisible} onRequestClose={()=>setWalletAddVisible(false)}>
@@ -588,11 +607,11 @@ export default function App() {
             const val  = rates[sym];
             return (
               <View key={sym} style={s.card}>
-                <View style={s.cardHeader}>
-                  <Text style={s.flag}>{info.flag}</Text>
-                  <Text style={s.name}>{language==='fa'?info.name:info.nameEn}</Text>
-                </View>
                 <Text style={s.price}>{val ? fmt(val) : '...'}</Text>
+                <View style={s.cardHeader}>
+                  <Text style={s.name}>{language==='fa'?info.name:info.nameEn}</Text>
+                  {info.flag ? <Text style={s.flag}>{info.flag}</Text> : null}
+                </View>
               </View>
             );
           })}
@@ -746,19 +765,19 @@ function createStyles(t, scale, lang) {
   const isRTL = lang === 'fa';
   return StyleSheet.create({
     container:        { flex:1, backgroundColor:t.bg },
-    header:           { backgroundColor:t.headerBg, paddingTop:40, paddingBottom:60, paddingHorizontal:20, borderBottomLeftRadius:35, borderBottomRightRadius:35, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.15, shadowRadius:6, elevation:5 },
-    settingsTopBtn:   { position:'absolute', top:45, left:15, width:40, height:40, justifyContent:'center', alignItems:'center', zIndex:20 },
+    header:           { backgroundColor:t.headerBg, paddingTop:50, paddingBottom:70, paddingHorizontal:20, borderBottomLeftRadius:35, borderBottomRightRadius:35, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.15, shadowRadius:6, elevation:5 },
+    settingsTopBtn:   { position:'absolute', top:55, left:10, width:40, height:40, justifyContent:'center', alignItems:'center', zIndex:20 },
     iconCircle:       { width:40, height:40, borderRadius:20, backgroundColor:t.primary, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.4, shadowRadius:4, elevation:4 },
     topBtnIcon:       { fontSize:22*scale, color:'#FFF', fontWeight:'600' },
-    dateContainer:    { alignItems:'center', marginTop:20 },
-    datePersian:      { fontSize:30*scale, fontWeight:'bold', color:t.textPrimary, marginBottom:14 },
-    dateGregorian:    { fontSize:16*scale, color:t.textSecondary, marginBottom:14 },
+    dateContainer:    { alignItems:'center', marginTop:5 },
+    datePersian:      { fontSize:30*scale, fontWeight:'bold', color:t.textPrimary, marginBottom:18 },
+    dateGregorian:    { fontSize:16*scale, color:t.textSecondary, marginBottom:18 },
     lastUpdate:       { fontSize:13*scale, color:t.textSecondary, marginTop:4 },
 
     // دکمه کیف پول (چپ)
-    calcBtn:          { position:'absolute', top:165, left:20, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10 },
+    calcBtn:          { position:'absolute', top:180, left:10, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10 },
     // دکمه مبدل (راست)
-    converterBtn:     { position:'absolute', top:165, right:20, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10 },
+    converterBtn:     { position:'absolute', top:180, right:10, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10 },
     calcIcon:         { fontSize:24*scale },
 
     center:           { flex:1, justifyContent:'center', alignItems:'center', padding:30 },
@@ -768,11 +787,11 @@ function createStyles(t, scale, lang) {
     retryBtn:         { backgroundColor:t.primary, paddingHorizontal:30, paddingVertical:12, borderRadius:12 },
     retryBtnText:     { color:'#FFF', fontSize:16*scale, fontWeight:'bold' },
     list:             { flex:1, padding:16, marginTop:40 },
-    card:             { backgroundColor:t.cardBg, borderRadius:20, padding:20, marginBottom:14, borderWidth:2, borderColor:t.cardBorder, shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.12, shadowRadius:4, elevation:3 },
-    cardHeader:       { flexDirection:'row', alignItems:'center', marginBottom:12 },
-    flag:             { fontSize:28, marginRight:12 },
-    name:             { fontSize:17*scale, fontWeight:'600', color:t.textPrimary, flex:1 },
-    price:            { fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:isRTL?'right':'left' },
+    card:             { backgroundColor:t.cardBg, borderRadius:16, padding:16, marginBottom:12, borderWidth:2, borderColor:t.cardBorder, flexDirection:'row', justifyContent:'space-between', alignItems:'center' },
+    cardHeader:       { flexDirection:'row', alignItems:'center' },
+    flag:             { fontSize:22, marginLeft:8 },
+    name:             { fontSize:15*scale, color:t.textPrimary, fontWeight:'600', textAlign:'right' },
+    price:            { fontSize:18*scale, fontWeight:'bold', color:t.primary },
     footer:           { alignItems:'center', paddingVertical:25 },
     footerText:       { color:'#95A5A6', fontSize:12*scale },
 
@@ -864,5 +883,11 @@ function createStyles(t, scale, lang) {
     walletInputLabel: { fontSize:15*scale, fontWeight:'600', color:t.textPrimary, marginBottom:8 },
     walletPickItem:   { flexDirection:'row', alignItems:'center', backgroundColor:t.headerBg, padding:14, borderRadius:12, marginBottom:8, borderWidth:1, borderColor:t.cardBorder },
     walletPickItemSel:{ borderColor:t.primary, borderWidth:2, backgroundColor:t.cardBorder },
+    ctxOverlay:       { flex:1, backgroundColor:'rgba(0,0,0,0.6)', justifyContent:'center', alignItems:'center' },
+    ctxMenu:          { backgroundColor:t.cardBg, borderRadius:20, padding:8, width:'75%', borderWidth:2, borderColor:t.cardBorder },
+    ctxTitle:         { fontSize:16*scale, fontWeight:'bold', color:t.primary, textAlign:'center', paddingVertical:14, paddingHorizontal:20 },
+    ctxDivider:       { height:1, backgroundColor:t.cardBorder },
+    ctxBtn:           { paddingVertical:16, alignItems:'center' },
+    ctxBtnText:       { fontSize:16*scale, color:t.textPrimary, fontWeight:'500' },
   });
 }
