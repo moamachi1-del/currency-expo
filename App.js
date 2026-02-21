@@ -445,7 +445,6 @@ export default function App() {
             <View style={s.emptyWallet}>
               <Text style={s.emptyWalletIcon}>🏦</Text>
               <Text style={s.emptyWalletText}>{t('هنوز دارایی ثبت نکردی','No assets yet')}</Text>
-              <Text style={s.emptyWalletSub}>{t('دکمه + بالا را بزن','Tap + above to add')}</Text>
             </View>
           ) : (
             walletItems.map((w, idx) => {
