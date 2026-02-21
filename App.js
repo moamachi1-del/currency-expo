@@ -460,7 +460,7 @@ export default function App() {
                     <Text style={s.walletFlag}>{info.flag}</Text>
                     <View>
                       <Text style={s.walletName}>{language==='fa'?info.name:info.nameEn}</Text>
-                      <Text style={s.walletAmt}>{fmt(w.amount, 6).replace(/\.?0+$/,'')} {language==='fa'?info.name:info.nameEn}</Text>
+                      <Text style={s.walletAmt}>{fmt(w.amount, 6).replace(/\.?0+$/, '')} {language==='fa'?info.name:info.nameEn}</Text>
                     </View>
                   </View>
                   <View style={s.walletCardRight}>
@@ -749,10 +749,10 @@ function createStyles(t, scale, lang) {
     settingsTopBtn:   { position:'absolute', top:45, left:15, width:40, height:40, justifyContent:'center', alignItems:'center', zIndex:20 },
     iconCircle:       { width:40, height:40, borderRadius:20, backgroundColor:t.primary, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.4, shadowRadius:4, elevation:4 },
     topBtnIcon:       { fontSize:22*scale, color:'#FFF', fontWeight:'600' },
-    dateContainer:    { alignItems:'center', marginTop:15 },
-    datePersian:      { fontSize:30*scale, fontWeight:'bold', color:t.textPrimary, marginBottom:10 },
-    dateGregorian:    { fontSize:16*scale, color:t.textSecondary, marginBottom:12 },
-    lastUpdate:       { fontSize:13*scale, color:t.textSecondary },
+    dateContainer:    { alignItems:'center', marginTop:20 },
+    datePersian:      { fontSize:30*scale, fontWeight:'bold', color:t.textPrimary, marginBottom:14 },
+    dateGregorian:    { fontSize:16*scale, color:t.textSecondary, marginBottom:14 },
+    lastUpdate:       { fontSize:13*scale, color:t.textSecondary, marginTop:4 },
 
     // دکمه کیف پول (چپ)
     calcBtn:          { position:'absolute', top:165, left:20, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10 },
@@ -818,7 +818,7 @@ function createStyles(t, scale, lang) {
     swapCurrName:     { fontSize:16*scale, fontWeight:'600', color:t.textPrimary, flex:1 },
     swapChevron:      { fontSize:14, color:t.textSecondary, marginLeft:4 },
     swapInput:        { fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:'right', flex:1, minWidth:80 },
-    swapResult:       { fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:'right', flex:1 },
+    swapResult:       { fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:'left', flex:1 },
     swapBtn:          { alignSelf:'center', width:44, height:44, borderRadius:22, backgroundColor:t.primary, justifyContent:'center', alignItems:'center', marginVertical:-10, zIndex:10, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.4, shadowRadius:5, elevation:6, borderWidth:3, borderColor:t.cardBg },
     swapBtnIcon:      { fontSize:22, color:'#FFF', fontWeight:'bold' },
 
