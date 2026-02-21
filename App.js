@@ -45,14 +45,14 @@ const CURRENCIES = {
   'RUB':             { name: 'روبل',          nameEn: 'Ruble',             flag: '🇷🇺', cat: 'currency' },
   'CAD':             { name: 'دلار کانادا',   nameEn: 'Canadian Dollar',   flag: '🇨🇦', cat: 'currency' },
   'AUD':             { name: 'دلار استرالیا', nameEn: 'Australian Dollar', flag: '🇦🇺', cat: 'currency' },
-  'IR_GOLD_18K':     { name: 'طلا ۱۸',        nameEn: 'Gold 18K',          flag: '🥇',  cat: 'gold'     },
-  'IR_GOLD_24K':     { name: 'طلا ۲۴',        nameEn: 'Gold 24K',          flag: '🥇',  cat: 'gold'     },
-  'IR_COIN_EMAMI':   { name: 'سکه امامی',     nameEn: 'Emami Coin',        flag: '🪙',  cat: 'gold'     },
-  'IR_COIN_BAHAR':   { name: 'سکه بهار',      nameEn: 'Bahar Coin',        flag: '🪙',  cat: 'gold'     },
-  'IR_COIN_HALF':    { name: 'نیم سکه',       nameEn: 'Half Coin',         flag: '🪙',  cat: 'gold'     },
-  'IR_COIN_QUARTER': { name: 'ربع سکه',       nameEn: 'Quarter Coin',      flag: '🪙',  cat: 'gold'     },
-  'BTC':             { name: 'بیت‌کوین',      nameEn: 'Bitcoin',           flag: '₿',   cat: 'crypto'   },
-  'ETH':             { name: 'اتریوم',        nameEn: 'Ethereum',          flag: 'Ξ',   cat: 'crypto'   },
+  'IR_GOLD_18K':     { name: 'طلا ۱۸',        nameEn: 'Gold 18K',          flag: '',    cat: 'gold'     },
+  'IR_GOLD_24K':     { name: 'طلا ۲۴',        nameEn: 'Gold 24K',          flag: '',    cat: 'gold'     },
+  'IR_COIN_EMAMI':   { name: 'سکه امامی',     nameEn: 'Emami Coin',        flag: '',    cat: 'gold'     },
+  'IR_COIN_BAHAR':   { name: 'سکه بهار',      nameEn: 'Bahar Coin',        flag: '',    cat: 'gold'     },
+  'IR_COIN_HALF':    { name: 'نیم سکه',       nameEn: 'Half Coin',         flag: '',    cat: 'gold'     },
+  'IR_COIN_QUARTER': { name: 'ربع سکه',       nameEn: 'Quarter Coin',      flag: '',    cat: 'gold'     },
+  'BTC':             { name: 'بیت‌کوین',      nameEn: 'Bitcoin',           flag: '',    cat: 'crypto'   },
+  'ETH':             { name: 'اتریوم',        nameEn: 'Ethereum',          flag: '',    cat: 'crypto'   },
 };
 
 const fmt = (num, dec = 0) =>
@@ -443,7 +443,7 @@ export default function App() {
 
           {walletItems.length === 0 ? (
             <View style={s.emptyWallet}>
-              <Text style={s.emptyWalletIcon}>👜</Text>
+              <Text style={s.emptyWalletIcon}>🏦</Text>
               <Text style={s.emptyWalletText}>{t('هنوز دارایی ثبت نکردی','No assets yet')}</Text>
               <Text style={s.emptyWalletSub}>{t('دکمه + بالا را بزن','Tap + above to add')}</Text>
             </View>
@@ -800,7 +800,7 @@ function createStyles(t, scale, lang) {
     themeItemText:    { fontSize:17*scale, fontWeight:'600', textAlign:isRTL?'right':'left', flex:1 },
 
     // مبدل
-    convHeader:       { backgroundColor:t.headerBg, padding:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center', borderBottomLeftRadius:25, borderBottomRightRadius:25 },
+    convHeader:       { backgroundColor:t.headerBg, paddingTop:15, paddingBottom:15, paddingHorizontal:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center', borderBottomLeftRadius:25, borderBottomRightRadius:25 },
     convTitle:        { fontSize:22*scale, fontWeight:'bold', color:t.textPrimary },
     convScreen:       { flex:1, padding:20, backgroundColor:t.bg },
     backBtn:          { padding:5 },
@@ -842,7 +842,7 @@ function createStyles(t, scale, lang) {
     totalLabel:       { fontSize:15*scale, color:'rgba(255,255,255,0.8)', marginBottom:8 },
     totalValue:       { fontSize:26*scale, fontWeight:'bold', color:'#FFF' },
     emptyWallet:      { alignItems:'center', paddingTop:60 },
-    emptyWalletIcon:  { fontSize:60, marginBottom:16 },
+    emptyWalletIcon:  { fontSize:60, marginBottom:16, textAlign:'center' },
     emptyWalletText:  { fontSize:18*scale, color:t.textPrimary, fontWeight:'600', marginBottom:8 },
     emptyWalletSub:   { fontSize:14*scale, color:t.textSecondary },
     walletCard:       { backgroundColor:t.cardBg, borderRadius:18, padding:18, marginBottom:14, borderWidth:2, borderColor:t.cardBorder, flexDirection:'row', justifyContent:'space-between', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.1, shadowRadius:4, elevation:3 },
