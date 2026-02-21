@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, TouchableOpacity, ActivityIndicator,
-  Modal, SafeAreaView, TextInput, Alert,
+  Modal, TextInput, Alert,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const FETCH_TIMEOUT = 10000;
@@ -137,16 +138,17 @@ export default function App() {
     try {
       const controller = new AbortController();
       const tid = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-      const res = await fetch(SERVER_URL, {
-        headers: {
-          'Accept':       'application/json',
-          'User-Agent':   'ArzbanApp/1.0',
-          'x-app-token':  API_TOKEN,          // ✅ توکن امنیتی
-        },
-        signal: controller.signal,
-      });
-      clearTimeout(tid);
-      if (!res.ok) throw new Error(`server_${res.status}`);
+      try {
+        const res = await fetch(SERVER_URL, {
+          headers: {
+            'Accept':       'application/json',
+            'User-Agent':   'ArzbanApp/1.0',
+            'x-app-token':  API_TOKEN,
+          },
+          signal: controller.signal,
+        });
+        clearTimeout(tid);
+        if (!res.ok) throw new Error(`server_${res.status}`);
       const data = await res.json();
 
       const newRates = { TOMAN: 1 };
@@ -156,15 +158,15 @@ export default function App() {
 
       [data.gold, data.currency, data.cryptocurrency].forEach(arr => {
         if (!Array.isArray(arr)) return;
-        arr.forEach(item => { if (item.symbol === 'USD' && item.price) usdRate = parseInt(item.price); });
+        arr.forEach(item => { if (item.symbol === 'USD' && item.price) usdRate = parseFloat(item.price); });
       });
       [data.gold, data.currency, data.cryptocurrency].forEach(arr => {
         if (!Array.isArray(arr)) return;
         arr.forEach(item => {
           if (item.symbol && item.price && allowed.includes(item.symbol)) {
             newRates[item.symbol] = (item.symbol === 'BTC' || item.symbol === 'ETH')
-              ? parseInt(item.price) * usdRate
-              : parseInt(item.price);
+              ? parseFloat(item.price) * usdRate
+              : parseFloat(item.price);
             items.push(item.symbol);
             convItems.push(item.symbol);
           }
@@ -180,6 +182,7 @@ export default function App() {
       setLastUpdate(time);
       await AsyncStorage.multiSet([['@cache', JSON.stringify(newRates)], ['@update', time]]);
     } catch (err) {
+      clearTimeout(tid);
       if (err.name === 'AbortError')               setError(t('سرور پاسخ نداد','Server timeout'));
       else if (err.message?.startsWith('server_')) setError(t(`خطای سرور: ${err.message.replace('server_','')}`,`Server error: ${err.message.replace('server_','')}`));
       else                                          setError(t('خطا در اتصال به اینترنت','No internet connection'));
@@ -298,7 +301,7 @@ export default function App() {
   });
 
   // ════════════════════════════════════════════════════════════
-  // صفحه مبدل
+  // converter visible
   // ════════════════════════════════════════════════════════════
   if (converterVisible) {
     const fromInfo = getInfo(fromCurrency);
@@ -309,10 +312,9 @@ export default function App() {
     );
 
     return (
+      <SafeAreaProvider>
       <SafeAreaView style={s.container}>
         <StatusBar style={currentTheme==='gold'||currentTheme==='neon'?'light':'dark'} />
-
-        {/* هدر */}
         <View style={s.convHeader}>
           <TouchableOpacity onPress={()=>{ setConverterVisible(false); setCurrSearch(''); }} style={s.backBtn}>
             <Text style={s.backIcon}>←</Text>
@@ -414,6 +416,7 @@ export default function App() {
           </View>
         </Modal>
       </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 
@@ -422,6 +425,7 @@ export default function App() {
   // ════════════════════════════════════════════════════════════
   if (walletVisible) {
     return (
+      <SafeAreaProvider>
       <SafeAreaView style={s.container}>
         <StatusBar style={currentTheme==='gold'||currentTheme==='neon'?'light':'dark'} />
         <View style={s.convHeader}>
@@ -457,7 +461,7 @@ export default function App() {
                     <Text style={s.walletFlag}>{info.flag}</Text>
                     <View>
                       <Text style={s.walletName}>{language==='fa'?info.name:info.nameEn}</Text>
-                      <Text style={s.walletAmt}>{fmt(w.amount, 8).replace(/\.?0+$/,'')} {info.nameEn}</Text>
+                      <Text style={s.walletAmt}>{fmt(w.amount, 6).replace(/\.?0+$/,'')} {language==='fa'?info.name:info.nameEn}</Text>
                     </View>
                   </View>
                   <View style={s.walletCardRight}>
@@ -532,6 +536,7 @@ export default function App() {
           </View>
         </Modal>
       </SafeAreaView>
+      </SafeAreaProvider>
     );
   }
 
@@ -539,6 +544,7 @@ export default function App() {
   // صفحه اصلی
   // ════════════════════════════════════════════════════════════
   return (
+    <SafeAreaProvider>
     <SafeAreaView style={s.container}>
       <StatusBar style={currentTheme==='gold'||currentTheme==='neon'?'light':'dark'} />
       <View style={s.header}>
@@ -729,6 +735,7 @@ export default function App() {
         </View>
       </Modal>
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
