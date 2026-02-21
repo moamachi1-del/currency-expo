@@ -17,11 +17,15 @@ workflows:
       - name: Prebuild Expo for Android
         script: |
           npx expo prebuild --platform android --non-interactive --clean
+      - name: Fix Gradle version
+        script: |
+          cd android
+          sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.3-all.zip|' gradle/wrapper/gradle-wrapper.properties
       - name: Build Release APK
         script: |
           cd android
           chmod +x ./gradlew
-          ./gradlew assembleRelease --stacktrace
+          ./gradlew assembleRelease
     artifacts:
       - android/app/build/outputs/apk/release/app-release.apk
     publishing:
