@@ -560,7 +560,7 @@ export default function App() {
 
       {/* دکمه مبدل */}
       <TouchableOpacity style={s.converterBtn} onPress={()=>setConverterVisible(true)}>
-        <Text style={s.calcIcon}>🧮</Text>
+        <Text style={s.calcIcon}>⚖️</Text>
       </TouchableOpacity>
 
       {loading ? (
