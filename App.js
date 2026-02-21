@@ -340,8 +340,8 @@ export default function App() {
                 placeholderTextColor={theme.textSecondary}
               />
               <TouchableOpacity style={s.swapCurrBtn} onPress={()=>{ setPickingFor('from'); setCurrSearch(''); }}>
-                <Text style={s.swapCurrName} numberOfLines={1}>{language==='fa'?fromInfo.name:fromInfo.nameEn}</Text>
                 <Text style={s.swapChevron}>▾</Text>
+                <Text style={s.swapCurrName} numberOfLines={1}>{language==='fa'?fromInfo.name:fromInfo.nameEn}</Text>
               </TouchableOpacity>
             </View>
 
@@ -357,8 +357,8 @@ export default function App() {
             <View style={s.swapBox}>
               <Text style={s.swapResult}>{toResult}</Text>
               <TouchableOpacity style={s.swapCurrBtn} onPress={()=>{ setPickingFor('to'); setCurrSearch(''); }}>
-                <Text style={s.swapCurrName} numberOfLines={1}>{language==='fa'?toInfo.name:toInfo.nameEn}</Text>
                 <Text style={s.swapChevron}>▾</Text>
+                <Text style={s.swapCurrName} numberOfLines={1}>{language==='fa'?toInfo.name:toInfo.nameEn}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -451,30 +451,34 @@ export default function App() {
             walletItems.map((w, idx) => {
               const info = getInfo(w.sym);
               return (
-                <View key={idx} style={s.walletCard}>
-                  {/* راست: اسم + پرچم */}
-                  <View style={s.walletCardRight}>
-                    <Text style={s.walletName}>{language==='fa'?info.name:info.nameEn}</Text>
-                    {info.flag ? <Text style={s.walletFlag}>{info.flag}</Text> : null}
-                  </View>
-                  {/* چپ: مقدار + دکمه‌ها */}
-                  <View style={s.walletCardLeft}>
-                    <Text style={s.walletAmt}>{fmt(w.amount, 6).replace(/\.?0+$/, '')}</Text>
-                    <View style={s.walletActions}>
-                      <TouchableOpacity onPress={()=>{
-                        setWalletEditIdx(idx);
-                        setWalletPickSym(w.sym);
-                        setWalletPickAmt(String(w.amount));
-                        setWalletAddVisible(true);
-                      }}>
-                        <Text style={s.walletEdit}>✏️</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={()=>deleteWalletItem(idx)}>
-                        <Text style={s.walletDelete}>🗑️</Text>
-                      </TouchableOpacity>
+                <TouchableOpacity key={idx} activeOpacity={0.8}
+                  onLongPress={()=>{
+                    Alert.alert(
+                      language==='fa'?info.name:info.nameEn,
+                      '',
+                      [
+                        { text: t('ویرایش','Edit'), onPress: ()=>{
+                          setWalletEditIdx(idx);
+                          setWalletPickSym(w.sym);
+                          setWalletPickAmt(String(w.amount));
+                          setWalletAddVisible(true);
+                        }},
+                        { text: t('حذف','Delete'), style:'destructive', onPress: ()=>deleteWalletItem(idx) },
+                        { text: t('لغو','Cancel'), style:'cancel' },
+                      ]
+                    );
+                  }}
+                >
+                  <View style={s.walletCard}>
+                    {/* راست: اسم + پرچم */}
+                    <View style={s.walletCardRight}>
+                      <Text style={s.walletName}>{language==='fa'?info.name:info.nameEn}</Text>
+                      {info.flag ? <Text style={s.walletFlag}>{info.flag}</Text> : null}
                     </View>
+                    {/* چپ: مقدار */}
+                    <Text style={s.walletAmt}>{fmt(w.amount, 6).replace(/\.?0+$/, '')}</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })
           )}
@@ -810,7 +814,7 @@ function createStyles(t, scale, lang) {
     swapBox:          { padding:18, flexDirection:'row', alignItems:'center', justifyContent:'space-between' },
     swapCurrBtn:      { flexDirection:'row', alignItems:'center' },
     swapFlag:         { fontSize:30, marginRight:10 },
-    swapCurrName:     { fontSize:16*scale, fontWeight:'600', color:t.textPrimary },
+    swapCurrName:     { fontSize:22*scale, fontWeight:'600', color:t.textPrimary },
     swapChevron:      { fontSize:12, color:t.textSecondary, marginLeft:2 },
     swapInput:        { fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:'left', flex:1, minWidth:80 },
     swapResult:       { fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:'left', flex:1 },
