@@ -21,10 +21,9 @@ workflows:
         script: |
           cd android
           chmod +x ./gradlew
-          ./gradlew assembleRelease --stacktrace 2>&1 | tail -100
+          ./gradlew assembleRelease --stacktrace
     artifacts:
-      - android/app/build/outputs/**/*.apk
-      - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/apk/release/app-release.apk
     publishing:
       email:
         recipients:
