@@ -439,7 +439,6 @@ export default function App() {
             <Text style={s.backIcon}>→</Text>
           </TouchableOpacity>
         </View>
-        </View>
 
         <ScrollView style={s.convScreen} contentContainerStyle={{paddingBottom:100}}>
           {/* کارت جمع کل */}
