@@ -320,11 +320,11 @@ export default function App() {
       <SafeAreaView style={s.container}>
         <StatusBar style={currentTheme==='gold'||currentTheme==='neon'?'light':'dark'} />
         <View style={s.convHeader}>
-          <TouchableOpacity onPress={()=>{ setConverterVisible(false); setCurrSearch(''); }} style={s.backBtn}>
-            <Text style={s.backIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={s.convTitle}>{t('مبدل ارز','Converter')}</Text>
           <View style={{width:40}} />
+          <Text style={s.convTitle}>{t('مبدل ارز','Converter')}</Text>
+          <TouchableOpacity onPress={()=>{ setConverterVisible(false); setCurrSearch(''); }} style={s.backBtn}>
+            <Text style={s.backIcon}>→</Text>
+          </TouchableOpacity>
         </View>
 
         <ScrollView style={s.convScreen} contentContainerStyle={{paddingBottom:100}} keyboardShouldPersistTaps="handled">
@@ -431,13 +431,14 @@ export default function App() {
       <SafeAreaView style={s.container}>
         <StatusBar style={currentTheme==='gold'||currentTheme==='neon'?'light':'dark'} />
         <View style={s.convHeader}>
-          <TouchableOpacity onPress={()=>setWalletVisible(false)} style={s.backBtn}>
-            <Text style={s.backIcon}>←</Text>
-          </TouchableOpacity>
-          <Text style={s.convTitle}>{t('کیف پول','Wallet')}</Text>
           <TouchableOpacity style={s.addBtn} onPress={()=>{ setWalletEditIdx(null); setWalletPickAmt(''); setWalletPickSym('USD'); setWalletAddVisible(true); }}>
             <Text style={s.addBtnText}>+</Text>
           </TouchableOpacity>
+          <Text style={s.convTitle}>{t('کیف پول','Wallet')}</Text>
+          <TouchableOpacity onPress={()=>setWalletVisible(false)} style={s.backBtn}>
+            <Text style={s.backIcon}>→</Text>
+          </TouchableOpacity>
+        </View>
         </View>
 
         <ScrollView style={s.convScreen} contentContainerStyle={{paddingBottom:100}}>
@@ -652,7 +653,7 @@ export default function App() {
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
             <View style={s.modalHeader}>
-              <TouchableOpacity onPress={()=>setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <TouchableOpacity onPress={()=>setSettingsSubMenu(null)}><Text style={s.backIcon}>→</Text></TouchableOpacity>
               <Text style={s.modalTitle}>{t('لیست ارزها','Currency List')}</Text>
               <View style={{width:40}} />
             </View>
@@ -691,7 +692,7 @@ export default function App() {
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
             <View style={s.modalHeader}>
-              <TouchableOpacity onPress={()=>setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <TouchableOpacity onPress={()=>setSettingsSubMenu(null)}><Text style={s.backIcon}>→</Text></TouchableOpacity>
               <Text style={s.modalTitle}>{t('اندازه قلم','Font Size')}</Text>
               <View style={{width:40}} />
             </View>
@@ -712,7 +713,7 @@ export default function App() {
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
             <View style={s.modalHeader}>
-              <TouchableOpacity onPress={()=>setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <TouchableOpacity onPress={()=>setSettingsSubMenu(null)}><Text style={s.backIcon}>→</Text></TouchableOpacity>
               <Text style={s.modalTitle}>{t('انتخاب زبان','Language')}</Text>
               <View style={{width:40}} />
             </View>
@@ -735,7 +736,7 @@ export default function App() {
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
             <View style={s.modalHeader}>
-              <TouchableOpacity onPress={()=>setSettingsSubMenu(null)}><Text style={s.backIcon}>←</Text></TouchableOpacity>
+              <TouchableOpacity onPress={()=>setSettingsSubMenu(null)}><Text style={s.backIcon}>→</Text></TouchableOpacity>
               <Text style={s.modalTitle}>{t('رنگ‌بندی','Colors')}</Text>
               <View style={{width:40}} />
             </View>
@@ -766,7 +767,7 @@ function createStyles(t, scale, lang) {
   return StyleSheet.create({
     container:        { flex:1, backgroundColor:t.bg },
     header:           { backgroundColor:t.headerBg, paddingTop:50, paddingBottom:70, paddingHorizontal:20, borderBottomLeftRadius:35, borderBottomRightRadius:35, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.15, shadowRadius:6, elevation:5 },
-    settingsTopBtn:   { position:'absolute', top:35, left:10, width:40, height:40, justifyContent:'center', alignItems:'center', zIndex:20 },
+    settingsTopBtn:   { position:'absolute', top:25, right:10, width:40, height:40, justifyContent:'center', alignItems:'center', zIndex:20 },
     iconCircle:       { width:40, height:40, borderRadius:20, backgroundColor:t.primary, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.4, shadowRadius:4, elevation:4 },
     topBtnIcon:       { fontSize:22*scale, color:'#FFF', fontWeight:'600' },
     dateContainer:    { alignItems:'center', marginTop:5 },
@@ -775,9 +776,9 @@ function createStyles(t, scale, lang) {
     lastUpdate:       { fontSize:13*scale, color:t.textSecondary, marginTop:4 },
 
     // دکمه کیف پول (چپ)
-    calcBtn:          { position:'absolute', top:210, left:10, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10 },
+    calcBtn:          { position:'absolute', top:210, right:10, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10 },
     // دکمه مبدل (راست)
-    converterBtn:     { position:'absolute', top:210, right:10, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10 },
+    converterBtn:     { position:'absolute', top:210, left:10, width:46, height:46, backgroundColor:t.primary, borderRadius:23, justifyContent:'center', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.3, shadowRadius:5, elevation:6, zIndex:10 },
     calcIcon:         { fontSize:24*scale },
 
     center:           { flex:1, justifyContent:'center', alignItems:'center', padding:30 },
