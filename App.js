@@ -340,9 +340,8 @@ export default function App() {
                 placeholderTextColor={theme.textSecondary}
               />
               <TouchableOpacity style={s.swapCurrBtn} onPress={()=>{ setPickingFor('from'); setCurrSearch(''); }}>
-                <Text style={s.swapChevron}>▾</Text>
                 <Text style={s.swapCurrName} numberOfLines={1}>{language==='fa'?fromInfo.name:fromInfo.nameEn}</Text>
-                <Text style={s.swapFlag}>{fromInfo.flag}</Text>
+                <Text style={s.swapChevron}>▾</Text>
               </TouchableOpacity>
             </View>
 
@@ -358,9 +357,8 @@ export default function App() {
             <View style={s.swapBox}>
               <Text style={s.swapResult}>{toResult}</Text>
               <TouchableOpacity style={s.swapCurrBtn} onPress={()=>{ setPickingFor('to'); setCurrSearch(''); }}>
-                <Text style={s.swapChevron}>▾</Text>
                 <Text style={s.swapCurrName} numberOfLines={1}>{language==='fa'?toInfo.name:toInfo.nameEn}</Text>
-                <Text style={s.swapFlag}>{toInfo.flag}</Text>
+                <Text style={s.swapChevron}>▾</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -810,10 +808,10 @@ function createStyles(t, scale, lang) {
     // دو باکس swap
     swapContainer:    { backgroundColor:t.cardBg, borderRadius:24, borderWidth:2, borderColor:t.cardBorder, marginBottom:24, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.12, shadowRadius:6, elevation:4 },
     swapBox:          { padding:18, flexDirection:'row', alignItems:'center', justifyContent:'space-between' },
-    swapCurrBtn:      { flexDirection:'row', alignItems:'center', flex:1, marginRight:12 },
+    swapCurrBtn:      { flexDirection:'row', alignItems:'center' },
     swapFlag:         { fontSize:30, marginRight:10 },
-    swapCurrName:     { fontSize:16*scale, fontWeight:'600', color:t.textPrimary, flex:1 },
-    swapChevron:      { fontSize:14, color:t.textSecondary, marginLeft:4 },
+    swapCurrName:     { fontSize:16*scale, fontWeight:'600', color:t.textPrimary },
+    swapChevron:      { fontSize:12, color:t.textSecondary, marginLeft:2 },
     swapInput:        { fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:'left', flex:1, minWidth:80 },
     swapResult:       { fontSize:22*scale, fontWeight:'bold', color:t.primary, textAlign:'left', flex:1 },
     swapBtn:          { alignSelf:'center', width:44, height:44, borderRadius:22, backgroundColor:t.primary, justifyContent:'center', alignItems:'center', marginVertical:-10, zIndex:10, shadowColor:t.primary, shadowOffset:{width:0,height:3}, shadowOpacity:0.4, shadowRadius:5, elevation:6, borderWidth:3, borderColor:t.cardBg },
