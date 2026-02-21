@@ -135,20 +135,18 @@ export default function App() {
   // ─── Fetch با توکن + timeout ───
   const fetchRates = async () => {
     setError(null);
+    const controller = new AbortController();
+    const tid = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
     try {
-      const controller = new AbortController();
-      const tid = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-      try {
-        const res = await fetch(SERVER_URL, {
-          headers: {
-            'Accept':       'application/json',
-            'User-Agent':   'ArzbanApp/1.0',
-            'x-app-token':  API_TOKEN,
-          },
-          signal: controller.signal,
-        });
-        clearTimeout(tid);
-        if (!res.ok) throw new Error(`server_${res.status}`);
+      const res = await fetch(SERVER_URL, {
+        headers: {
+          'Accept':       'application/json',
+          'User-Agent':   'ArzbanApp/1.0',
+          'x-app-token':  API_TOKEN,
+        },
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error(`server_${res.status}`);
       const data = await res.json();
 
       const newRates = { TOMAN: 1 };
@@ -182,12 +180,13 @@ export default function App() {
       setLastUpdate(time);
       await AsyncStorage.multiSet([['@cache', JSON.stringify(newRates)], ['@update', time]]);
     } catch (err) {
-      clearTimeout(tid);
       if (err.name === 'AbortError')               setError(t('سرور پاسخ نداد','Server timeout'));
       else if (err.message?.startsWith('server_')) setError(t(`خطای سرور: ${err.message.replace('server_','')}`,`Server error: ${err.message.replace('server_','')}`));
       else                                          setError(t('خطا در اتصال به اینترنت','No internet connection'));
+    } finally {
+      clearTimeout(tid);
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   // ─── بارگذاری اولیه ───
