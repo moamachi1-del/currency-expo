@@ -56,8 +56,12 @@ const CURRENCIES = {
   'ETH':             { name: 'اتریوم',        nameEn: 'Ethereum',          flag: '',    cat: 'crypto'   },
 };
 
-const fmt = (num, dec = 0) =>
-  num.toLocaleString('en-US', { maximumFractionDigits: dec, minimumFractionDigits: 0 });
+const fmt = (num, dec = 0) => {
+  if (num === null || num === undefined || isNaN(num)) return '0';
+  const parts = Number(num).toFixed(dec).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return dec > 0 ? parts.join('.') : parts[0];
+};
 
 const fmtDisplay = (raw) => {
   const n = String(raw).replace(/,/g, '');
@@ -470,13 +474,11 @@ export default function App() {
                   }}
                 >
                   <View style={s.walletCard}>
-                    {/* راست: اسم + پرچم */}
-                    <View style={s.walletCardRight}>
-                      <Text style={s.walletName}>{language==='fa'?info.name:info.nameEn}</Text>
-                      {info.flag ? <Text style={s.walletFlag}>{info.flag}</Text> : null}
-                    </View>
-                    {/* چپ: مقدار */}
                     <Text style={s.walletAmt}>{fmt(w.amount, 6).replace(/\.?0+$/, '')}</Text>
+                    <View style={s.walletCardRight}>
+                      {info.flag ? <Text style={s.walletFlag}>{info.flag}</Text> : null}
+                      <Text style={s.walletName}>{language==='fa'?info.name:info.nameEn}</Text>
+                    </View>
                   </View>
                 </TouchableOpacity>
               );
