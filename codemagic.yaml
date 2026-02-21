@@ -19,8 +19,7 @@ workflows:
           npx expo prebuild --platform android --non-interactive --clean
       - name: Fix Gradle version
         script: |
-          cd android
-          sed -i 's|distributionUrl=.*|distributionUrl=https\\://services.gradle.org/distributions/gradle-8.3-all.zip|' gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.3-all.zip" > android/gradle/wrapper/gradle-wrapper.properties
       - name: Build Release APK
         script: |
           cd android
