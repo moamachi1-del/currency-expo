@@ -858,7 +858,7 @@ function createStyles(t, scale, lang) {
     walletAmt:        { fontSize:13*scale, color:t.textSecondary },
     walletCardRight:  { alignItems:'flex-end' },
     walletValue:      { fontSize:16*scale, fontWeight:'bold', color:t.primary, marginBottom:8 },
-    walletActions:    { flexDirection:'row', gap:12 },
+    walletActions:    { flexDirection:'row', columnGap:12 },
     walletEdit:       { fontSize:20 },
     walletDelete:     { fontSize:20 },
     walletInputLabel: { fontSize:15*scale, fontWeight:'600', color:t.textPrimary, marginBottom:8 },
