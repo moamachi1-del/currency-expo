@@ -1,4 +1,3 @@
-```yaml
 workflows:
   expo-android-build:
     name: Expo Android APK Build
@@ -8,29 +7,23 @@ workflows:
       java: 17
       vars:
         PACKAGE_NAME: com.currencyapp.expo
-
     scripts:
       - name: Install Node dependencies
         script: |
           npm install
-
       - name: Install Expo CLI globally
         script: |
           npm install -g expo-cli
-
       - name: Prebuild Expo for Android
         script: |
           npx expo prebuild --platform android --non-interactive --clean
-
       - name: Build Release APK
         script: |
           cd android
           chmod +x ./gradlew
           ./gradlew assembleRelease --stacktrace 2>&1 | tail -100
-
     artifacts:
       - android/app/build/outputs/apk/release/*.apk
-
     publishing:
       email:
         recipients:
@@ -38,4 +31,3 @@ workflows:
         notify:
           success: true
           failure: true
-```
