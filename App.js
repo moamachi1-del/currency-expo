@@ -28,7 +28,7 @@ const FONT_SIZES = {
 };
 
 const CURRENCIES = {
-  'TOMAN':           { name: 'تومان ایران',   nameEn: 'Iranian Toman',     flag: '🇮🇷', cat: 'currency' },
+  'TOMAN':           { name: 'تومان',          nameEn: 'Toman',             flag: '🇮🇷', cat: 'currency' },
   'USDT_IRT':        { name: 'تتر',           nameEn: 'Tether',            flag: '🇺🇸', cat: 'currency' },
   'USD':             { name: 'دلار',          nameEn: 'US Dollar',         flag: '🇺🇸', cat: 'currency' },
   'EUR':             { name: 'یورو',          nameEn: 'Euro',              flag: '🇪🇺', cat: 'currency' },
@@ -372,11 +372,11 @@ export default function App() {
             const res  = calcConvert(fromCurrency, sym, fromRaw);
             return (
               <View key={sym} style={s.resCard}>
-                <View style={s.resCardLeft}>
-                  <Text style={s.resFlag}>{info.flag}</Text>
-                  <Text style={s.resName}>{language==='fa'?info.name:info.nameEn}</Text>
-                </View>
                 <Text style={s.resValue}>{res}</Text>
+                <View style={s.resCardLeft}>
+                  <Text style={s.resName}>{language==='fa'?info.name:info.nameEn}</Text>
+                  {info.flag ? <Text style={s.resFlag}>{info.flag}</Text> : null}
+                </View>
               </View>
             );
           })}
@@ -451,13 +451,17 @@ export default function App() {
             </View>
           ) : (
             walletItems.map((w, idx) => {
-              const info    = getInfo(w.sym);
-              const rate    = rates[w.sym] || 1;
-              const valToman = w.amount * rate;
+              const info = getInfo(w.sym);
               return (
                 <View key={idx} style={s.walletCard}>
+                  {/* راست: اسم + پرچم */}
                   <View style={s.walletCardRight}>
-                    <Text style={s.walletValue}>{fmt(valToman)} {t('ت','T')}</Text>
+                    <Text style={s.walletName}>{language==='fa'?info.name:info.nameEn}</Text>
+                    {info.flag ? <Text style={s.walletFlag}>{info.flag}</Text> : null}
+                  </View>
+                  {/* چپ: مقدار + دکمه‌ها */}
+                  <View style={s.walletCardLeft}>
+                    <Text style={s.walletAmt}>{fmt(w.amount, 6).replace(/\.?0+$/, '')}</Text>
                     <View style={s.walletActions}>
                       <TouchableOpacity onPress={()=>{
                         setWalletEditIdx(idx);
@@ -471,13 +475,6 @@ export default function App() {
                         <Text style={s.walletDelete}>🗑️</Text>
                       </TouchableOpacity>
                     </View>
-                  </View>
-                  <View style={s.walletCardLeft}>
-                    <View>
-                      <Text style={s.walletName}>{language==='fa'?info.name:info.nameEn}</Text>
-                      <Text style={s.walletAmt}>{fmt(w.amount, 6).replace(/\.?0+$/, '')} {language==='fa'?info.name:info.nameEn}</Text>
-                    </View>
-                    <Text style={s.walletFlag}>{info.flag}</Text>
                   </View>
                 </View>
               );
@@ -825,9 +822,9 @@ function createStyles(t, scale, lang) {
     // نتایج مبدل
     resultsTitle:     { fontSize:18*scale, fontWeight:'bold', color:t.textPrimary, marginBottom:15 },
     resCard:          { backgroundColor:t.cardBg, borderRadius:16, padding:16, marginBottom:12, borderWidth:2, borderColor:t.cardBorder, flexDirection:'row', justifyContent:'space-between', alignItems:'center' },
-    resCardLeft:      { flexDirection:'row', alignItems:'center', flex:1 },
-    resFlag:          { fontSize:22, marginRight:10 },
-    resName:          { fontSize:15*scale, color:t.textPrimary, fontWeight:'600' },
+    resCardLeft:      { flexDirection:'row', alignItems:'center' },
+    resFlag:          { fontSize:22, marginLeft:8 },
+    resName:          { fontSize:15*scale, color:t.textPrimary, fontWeight:'600', textAlign:'right' },
     resValue:         { fontSize:18*scale, fontWeight:'bold', color:t.primary },
 
     // انتخابگر ارز
@@ -843,20 +840,20 @@ function createStyles(t, scale, lang) {
     input:            { backgroundColor:t.headerBg, color:t.textPrimary, padding:16, borderRadius:15, fontSize:17*scale, borderWidth:2, borderColor:t.cardBorder, fontWeight:'600', marginBottom:16 },
 
     // کیف پول
-    totalCard:        { backgroundColor:t.primary, borderRadius:20, padding:24, marginBottom:20, alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:4}, shadowOpacity:0.3, shadowRadius:8, elevation:6 },
-    totalLabel:       { fontSize:15*scale, color:'rgba(255,255,255,0.8)', marginBottom:8 },
-    totalValue:       { fontSize:26*scale, fontWeight:'bold', color:'#FFF' },
+    totalCard:        { backgroundColor:t.headerBg, borderRadius:20, padding:24, marginBottom:20, alignItems:'center', borderWidth:2, borderColor:t.cardBorder },
+    totalLabel:       { fontSize:15*scale, color:t.textSecondary, marginBottom:8, fontWeight:'600' },
+    totalValue:       { fontSize:26*scale, fontWeight:'bold', color:t.primary },
     emptyWallet:      { alignItems:'center', paddingTop:60 },
     emptyWalletIcon:  { fontSize:60, marginBottom:16, textAlign:'center' },
     emptyWalletText:  { fontSize:18*scale, color:t.textPrimary, fontWeight:'600', marginBottom:8 },
     emptyWalletSub:   { fontSize:14*scale, color:t.textSecondary },
-    walletCard:       { backgroundColor:t.cardBg, borderRadius:18, padding:18, marginBottom:14, borderWidth:2, borderColor:t.cardBorder, flexDirection:'row', justifyContent:'space-between', alignItems:'center', shadowColor:t.primary, shadowOffset:{width:0,height:2}, shadowOpacity:0.1, shadowRadius:4, elevation:3 },
-    walletCardLeft:   { flexDirection:'row-reverse', alignItems:'center', flex:1 },
-    walletFlag:       { fontSize:32, marginLeft:14 },
-    walletName:       { fontSize:16*scale, fontWeight:'600', color:t.textPrimary, marginBottom:4 },
-    walletAmt:        { fontSize:13*scale, color:t.textSecondary },
-    walletCardRight:  { alignItems:'flex-end' },
-    walletValue:      { fontSize:16*scale, fontWeight:'bold', color:t.primary, marginBottom:8 },
+    walletCard:       { backgroundColor:t.cardBg, borderRadius:18, padding:18, marginBottom:14, borderWidth:2, borderColor:t.cardBorder, flexDirection:'row', justifyContent:'space-between', alignItems:'center' },
+    walletCardRight:  { flexDirection:'row', alignItems:'center' },
+    walletFlag:       { fontSize:32, marginLeft:10 },
+    walletName:       { fontSize:16*scale, fontWeight:'bold', color:t.textPrimary, textAlign:'right' },
+    walletCardLeft:   { alignItems:'flex-end' },
+    walletAmt:        { fontSize:18*scale, fontWeight:'bold', color:t.primary, textAlign:'right', marginBottom:6 },
+    walletValue:      { fontSize:14*scale, color:t.textSecondary, textAlign:'right' },
     walletActions:    { flexDirection:'row', columnGap:12 },
     walletEdit:       { fontSize:20 },
     walletDelete:     { fontSize:20 },
