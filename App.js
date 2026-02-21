@@ -800,7 +800,7 @@ function createStyles(t, scale, lang) {
     themeItemText:    { fontSize:17*scale, fontWeight:'600', textAlign:isRTL?'right':'left', flex:1 },
 
     // مبدل
-    convHeader:       { backgroundColor:t.headerBg, paddingTop:15, paddingBottom:15, paddingHorizontal:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center', borderBottomLeftRadius:25, borderBottomRightRadius:25 },
+    convHeader:       { backgroundColor:t.headerBg, paddingTop:50, paddingBottom:15, paddingHorizontal:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center', borderBottomLeftRadius:25, borderBottomRightRadius:25 },
     convTitle:        { fontSize:22*scale, fontWeight:'bold', color:t.textPrimary },
     convScreen:       { flex:1, padding:20, backgroundColor:t.bg },
     backBtn:          { padding:5 },
