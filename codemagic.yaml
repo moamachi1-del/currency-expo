@@ -23,6 +23,7 @@ workflows:
           chmod +x ./gradlew
           ./gradlew assembleRelease --stacktrace 2>&1 | tail -100
     artifacts:
+      - android/app/build/outputs/**/*.apk
       - android/app/build/outputs/apk/release/*.apk
     publishing:
       email:
